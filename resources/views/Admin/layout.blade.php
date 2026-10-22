@@ -350,6 +350,8 @@
             </a>
 
             <div class="d-flex align-items-center gap-2 gap-sm-3">
+                <a href="{{ route('admin.productos.index') }}" class="btn btn-outline-info btn-sm">Productos</a>
+                <a href="{{ route('admin.categorias-producto.index') }}" class="btn btn-outline-info btn-sm">Categorías</a>
                 <span class="admin-user">
                     {{ auth()->user()->name }}
                 </span>

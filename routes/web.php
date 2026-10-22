@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\PaisAdminController;
+use App\Http\Controllers\Admin\ProductoAdminController;
+use App\Http\Controllers\Admin\CategoriaProductoAdminController;
 use App\Http\Controllers\Admin\PeliculaAdminController;
 use App\Http\Controllers\Admin\PeliculaCreditoAdminController;
 use App\Http\Controllers\Admin\PeliculaMultimediaAdminController;
@@ -85,6 +87,21 @@ Route::middleware(['auth', 'admin'])
                 'edit',
                 'update',
             ]);
+        // Categorías del catálogo de confitería
+        Route::resource('categorias-producto', CategoriaProductoAdminController::class)
+            ->parameters(['categorias-producto' => 'categoriaProducto'])
+            ->only(['index', 'create', 'store', 'edit', 'update']);
+
+        Route::patch(
+            'categorias-producto/{categoriaProducto}/estado',
+            [CategoriaProductoAdminController::class, 'cambiarEstado']
+        )->name('categorias-producto.estado');
+        // Catálogo de productos de confitería
+        Route::resource('productos', ProductoAdminController::class)
+            ->parameters(['productos' => 'producto'])
+            ->only(['index', 'create', 'store', 'edit', 'update']);
+        Route::patch('productos/{producto}/estado', [ProductoAdminController::class, 'cambiarEstado'])
+            ->name('productos.estado');
         // Países de producción de una película
         Route::prefix('peliculas/{pelicula}/paises')
             ->name('peliculas.paises.')
