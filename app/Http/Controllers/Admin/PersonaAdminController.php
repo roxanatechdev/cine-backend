@@ -62,17 +62,17 @@ class PersonaAdminController extends Controller
             'nombre_completo' => [
                 'required',
                 'string',
-                'max:150',
+                'max:180',
             ],
             'nombre_busqueda' => [
-                'required',
+                'nullable',
                 'string',
-                'max:150',
+                'max:180',
             ],
             'url_foto' => [
                 'nullable',
                 'string',
-                'max:500',
+                'max:255',
             ],
             'archivo' => [
                 'nullable',

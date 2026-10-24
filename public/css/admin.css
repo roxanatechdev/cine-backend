@@ -1,0 +1,70 @@
+/* ==========================================================================
+   ESTILOS DE TARJETAS KPI (DASHBOARD)
+   ========================================================================== */
+
+/* Fondo degradado oscuro con acento rojo muy sutil y sin bordes */
+.admin-kpi-card {
+    background: linear-gradient(50deg, var(--cm-surface-container, #1d1f29) 0%, var(--cm-surface-container-low, #191b24) 60%, rgba(229, 9, 20, 0.08) 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Efecto Hover elegante al pasar el cursor */
+.admin-kpi-card:hover {
+    filter: brightness(1.25);
+}
+
+.admin-kpi-card:hover .kpi-link {
+    color: #ffffff !important;
+}
+
+.admin-kpi-card:hover .transition-icon {
+    transform: translateX(4px);
+    color: var(--cm-primary-container, #e50914);
+}
+
+.transition-icon {
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+/* ==========================================================================
+   OPTIMIZACIÓN PARA PANTALLAS MÓVILES (< 576px)
+   ========================================================================== */
+@media (max-width: 575.98px) {
+
+    /* Hacer las tarjetas más bajas/compactas en móvil pero aprovechando el 100% del ancho */
+    .admin-kpi-card {
+        padding: 0.85rem 1rem !important;
+    }
+
+    /* Organización en fila compacta para ahorrar altura */
+    .admin-kpi-card>div:first-child {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .admin-kpi-card .d-flex.justify-content-between {
+        margin-bottom: 0 !important;
+        order: 3;
+    }
+
+    /* Ajustar tamaños de fuente en teléfono */
+    .admin-kpi-card .kpi-value {
+        font-size: 1.65rem !important;
+        margin-bottom: 0 !important;
+    }
+
+    .admin-kpi-card .kpi-label {
+        font-size: 0.75rem !important;
+    }
+
+    /* Enlace compacto */
+    .admin-kpi-card .kpi-link {
+        margin-top: 0.5rem !important;
+        padding-top: 0.35rem !important;
+    }
+}
+

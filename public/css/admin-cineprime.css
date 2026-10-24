@@ -1,0 +1,537 @@
+/* Complementos exclusivos del panel administrativo CinePrime. */
+.admin-shell {
+  min-height: 100vh;
+  background: var(--cm-background);
+  color: var(--cm-on-background);
+}
+
+.admin-sidebar {
+  width: 258px;
+  flex: 0 0 258px;
+  background: var(--cm-surface-container-lowest);
+  border-right: 1px solid var(--cm-outline-variant);
+  transition: width .2s ease, transform .2s ease;
+}
+
+.admin-sidebar-inner {
+  position: sticky;
+  top: 0;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 1.1rem .85rem;
+}
+
+.admin-brand-mark {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding: .55rem .65rem 1.2rem;
+  color: var(--cm-on-background);
+  text-decoration: none;
+}
+
+.admin-brand-mark .brand-symbol {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--cm-primary-container);
+  color: #fff;
+}
+
+.admin-brand-mark strong {
+  font-family: var(--cm-font-display);
+  font-size: 1.55rem;
+  letter-spacing: .04em;
+  line-height: 1;
+}
+
+.admin-brand-mark small {
+  display: block;
+  margin-top: .2rem;
+  color: var(--cm-on-surface-variant);
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.admin-nav-label {
+  margin: 1.15rem .65rem .45rem;
+  color: var(--cm-on-surface-variant);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  min-height: 40px;
+  margin: .12rem 0;
+  padding: .55rem .7rem;
+  border-radius: 8px;
+  color: var(--cm-on-background);
+  font-size: .83rem;
+  text-decoration: none;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+.admin-nav-link .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--cm-on-surface-variant);
+}
+
+.admin-nav-link:hover {
+  background: var(--cm-surface-container-high);
+  color: #fff;
+}
+
+.admin-nav-link.active {
+  background: color-mix(in srgb, var(--cm-primary-container) 18%, transparent);
+  color: #fff;
+  box-shadow: inset 3px 0 var(--cm-primary-container);
+}
+
+.admin-nav-link.active .material-symbols-outlined {
+  color: var(--cm-primary);
+}
+
+.admin-main-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 76px;
+  padding: 1rem clamp(1rem, 3vw, 2rem);
+  background: var(--cm-surface-container-low);
+}
+
+.admin-content {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.admin-page-heading {
+  margin: 0;
+  font-family: var(--cm-font-display);
+  font-size: clamp(1.8rem, 3vw, 2.35rem);
+  letter-spacing: .035em;
+  line-height: 1.05;
+}
+
+.admin-eyebrow {
+  color: var(--cm-on-surface-variant);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.admin-metric {
+  position: relative;
+  overflow: hidden;
+  padding: 1.15rem;
+  height: 100%;
+}
+
+.admin-metric .metric-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  color: var(--cm-primary);
+  background: color-mix(in srgb, var(--cm-primary-container) 18%, transparent);
+}
+
+.admin-metric .metric-value {
+  margin: .9rem 0 .25rem;
+  font-size: clamp(1.65rem, 3vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.admin-metric .metric-label {
+  color: var(--cm-on-surface-variant);
+  font-size: .82rem;
+}
+
+.admin-table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--cm-on-background);
+  --bs-table-border-color: var(--cm-outline-variant);
+  --bs-table-hover-bg: var(--cm-surface-container-high);
+  --bs-table-hover-color: var(--cm-on-background);
+  margin: 0;
+}
+
+.admin-table thead th {
+  padding: .8rem .9rem;
+  color: var(--cm-on-surface-variant);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-table tbody td {
+  padding: .85rem .9rem;
+  vertical-align: middle;
+}
+
+.admin-table a {
+  color: var(--cm-on-background);
+  text-decoration: none;
+}
+
+.admin-table a:hover {
+  color: var(--cm-primary);
+}
+
+.admin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .28rem .55rem;
+  border: 1px solid var(--cm-outline-variant);
+  border-radius: 999px;
+  background: var(--cm-surface-container);
+  color: var(--cm-on-background);
+  font-size: .7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-pill.success {
+  color: #a8e7c5;
+  border-color: #286344;
+  background: #153126;
+}
+
+.admin-pill.warning {
+  color: #f3d28c;
+  border-color: #705a25;
+  background: #302817;
+}
+
+.admin-pill.danger {
+  color: #ffb4ab;
+  border-color: #783a3a;
+  background: #351d26;
+}
+
+.admin-pill.info {
+  color: #9bdcf5;
+  border-color: #315a70;
+  background: #172b37;
+}
+
+.admin-section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.admin-section-subtitle {
+  margin: .25rem 0 0;
+  color: var(--cm-on-surface-variant);
+  font-size: .78rem;
+}
+
+
+.admin-user-chip {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  color: var(--cm-on-background);
+  font-size: .82rem;
+}
+
+.admin-user-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--cm-surface-container-highest);
+  color: var(--cm-primary);
+  font-weight: 700;
+}
+
+.admin-main-wrap .form-label {
+  color: var(--cm-on-background);
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+.admin-main-wrap .form-control,
+.admin-main-wrap .form-select {
+  background-color: var(--cm-surface-container-lowest);
+  color: var(--cm-on-background);
+}
+
+.admin-main-wrap .form-control:focus,
+.admin-main-wrap .form-select:focus {
+  border-color: var(--cm-primary);
+  box-shadow: 0 0 0 .2rem rgb(229 9 20 / 18%);
+}
+
+.admin-main-wrap .btn-primary {
+  --bs-btn-bg: var(--cm-primary-container);
+  --bs-btn-border-color: var(--cm-primary-container);
+  --bs-btn-hover-bg: #b80710;
+  --bs-btn-hover-border-color: #b80710;
+  --bs-btn-color: #fff;
+}
+
+.admin-main-wrap .btn-outline-info {
+  --bs-btn-color: var(--cm-tertiary-light-blue);
+  --bs-btn-border-color: #477e95;
+  --bs-btn-hover-bg: #244553;
+  --bs-btn-hover-border-color: #477e95;
+}
+
+.admin-main-wrap .alert-success {
+  --bs-alert-bg: #153126;
+  --bs-alert-color: #b8efd2;
+  --bs-alert-border-color: #286344;
+}
+
+.admin-main-wrap .alert-danger {
+  --bs-alert-bg: #351d26;
+  --bs-alert-color: #ffc0c7;
+  --bs-alert-border-color: #713744;
+}
+
+.admin-main-wrap .alert-warning {
+  --bs-alert-bg: #302817;
+  --bs-alert-color: #f3d28c;
+  --bs-alert-border-color: #705a25;
+}
+
+.admin-sidebar-backdrop {
+  display: none;
+}
+
+.admin-sidebar-toggle {
+  display: none;
+}
+
+.admin-breadcrumb {
+  color: var(--cm-on-surface-variant);
+  font-size: .76rem;
+}
+
+.admin-breadcrumb a {
+  color: var(--cm-on-surface-variant);
+  text-decoration: none;
+}
+
+.admin-breadcrumb a:hover {
+  color: var(--cm-primary);
+}
+
+@media (min-width: 992px) {
+  .admin-shell.sidebar-collapsed .admin-sidebar {
+    width: 78px;
+    flex-basis: 78px;
+  }
+
+  .admin-shell.sidebar-collapsed .admin-brand-mark {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .admin-shell.sidebar-collapsed .admin-brand-copy,
+  .admin-shell.sidebar-collapsed .admin-nav-label,
+  .admin-shell.sidebar-collapsed .admin-nav-text {
+    display: none;
+  }
+
+  .admin-shell.sidebar-collapsed .admin-nav-link {
+    justify-content: center;
+    padding-inline: .35rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    position: fixed;
+    z-index: 1050;
+    inset: 0 auto 0 0;
+    width: min(290px, 86vw);
+    transform: translateX(-102%);
+    box-shadow: none;
+  }
+
+  .admin-shell.sidebar-open .admin-sidebar {
+    transform: translateX(0);
+    box-shadow: 12px 0 32px rgb(0 0 0 / 35%);
+  }
+
+  .admin-sidebar-backdrop {
+    position: fixed;
+    z-index: 1040;
+    inset: 0;
+    background: rgb(0 0 0 / 58%);
+  }
+
+  .admin-shell.sidebar-open .admin-sidebar-backdrop {
+    display: block;
+  }
+
+  .admin-sidebar-toggle {
+    display: inline-flex;
+  }
+
+  .admin-topbar {
+    min-height: 66px;
+  }
+
+  .admin-content {
+    padding: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .admin-sidebar,
+  .admin-nav-link {
+    transition: none;
+  }
+}
+
+/* Compatibilidad con las clases ya utilizadas por las vistas administrativas existentes. */
+.admin-main-wrap .panel {
+  min-width: 0;
+  background: var(--cm-surface-container-low);
+  border: 1px solid var(--cm-outline-variant);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+}
+
+.admin-main-wrap .admin-page-title {
+  margin-bottom: .4rem;
+  font-size: clamp(1.45rem, 2.5vw, 1.9rem);
+  font-weight: 750;
+  letter-spacing: -.035em;
+  line-height: 1.25;
+}
+
+.admin-main-wrap .muted {
+  color: var(--cm-on-surface-variant) !important;
+}
+
+.admin-main-wrap .text-info {
+  color: var(--cm-tertiary-light-blue) !important;
+}
+
+.admin-main-wrap .table-dark {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--cm-on-background);
+  --bs-table-border-color: var(--cm-outline-variant);
+  --bs-table-hover-bg: var(--cm-surface-container-high);
+  --bs-table-hover-color: var(--cm-on-background);
+}
+
+.admin-main-wrap .pagination {
+  --bs-pagination-focus-color: var(--cm-primary-container);
+  --bs-pagination-bg: var(--cm-surface-container-low);
+  --bs-pagination-color: var(--cm-on-background);
+  --bs-pagination-border-color: var(--cm-outline-variant);
+  --bs-pagination-hover-bg: var(--cm-surface-container-high);
+  --bs-pagination-hover-color: #fff;
+  --bs-pagination-active-bg: var(--cm-primary-container);
+  --bs-pagination-active-border-color: var(--cm-primary-container);
+}
+
+/* ==========================================================================
+   TARJETAS KPI INTERACTIVAS (CLICKABLE CARDS)
+   ========================================================================== */
+
+.admin-kpi-card {
+  background: linear-gradient(50deg, var(--cm-surface-container, #1d1f29) 0%, var(--cm-surface-container-low, #191b24) 60%, rgba(229, 9, 20, 0.08) 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  cursor: pointer;
+}
+
+/* Animación sutil al pasar el cursor por toda la tarjeta */
+.admin-kpi-card:hover {
+  filter: brightness(1.25);
+}
+
+/* Efecto de escala ligera en el icono al hacer hover */
+.admin-kpi-card:hover .icon-animated {
+  transform: scale(1.15);
+  transition: transform 0.2s ease;
+}
+
+.icon-animated {
+  transition: transform 0.2s ease;
+}
+
+/* ==========================================================================
+   OPTIMIZACIÓN MÓVIL (< 576px)
+   ========================================================================== */
+@media (max-width: 575.98px) {
+  .admin-kpi-card {
+    padding: 1rem !important;
+  }
+
+  .admin-kpi-card .kpi-value {
+    font-size: 1.85rem !important;
+  }
+
+  .admin-kpi-card .kpi-label {
+    font-size: 0.78rem !important;
+  }
+}
+
+/* ==========================================================================
+   SCROLLBARS ESTILIZADOS Y DELGADOS (SIDEBAR Y TABLAS)
+   ========================================================================== */
+
+/* Ancho para scroll vertical y alto para scroll horizontal */
+::-webkit-scrollbar {
+  width: 6px;
+  /* Más delgado para el scroll vertical del sidebar */
+  height: 6px;
+  /* Más delgado para el scroll horizontal de las tablas */
+}
+
+/* Riel o fondo de la barra de desplazamiento */
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+/* La barra deslizante (Thumb) */
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  transition: background 0.25s ease;
+}
+
+/* Color al pasar el cursor sobre la barra (puedes usar tu rojo primario o un gris claro) */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cm-primary-container, #e50914);
+}
+
+/* Soporte de scroll fino para Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.1);
+}

@@ -26,37 +26,135 @@ class PeliculaCreditoAdminController extends Controller
      */
     public function index(Pelicula $pelicula)
     {
-        $creditos = PeliculaCredito::query()
-            ->with('persona')
-            ->where('id_pelicula', $pelicula->id_pelicula)
-            ->orderBy('rol')
-            ->orderBy('orden')
-            ->orderBy('id_persona')
-            ->paginate(15);
-
-        return view('admin.creditos.index', compact(
-            'pelicula',
-            'creditos'
-        ));
+        return redirect()->route('admin.peliculas.edit', [
+            'pelicula' => $pelicula,
+            'tab' => 'creditos',
+        ]);
     }
 
-    /**
-     * Mostrar el formulario de registro.
-     */
+    /** Abrir el formulario integrado para asignar un crédito. */
     public function create(Pelicula $pelicula)
     {
-        $personas = Persona::query()
-            ->orderBy('nombre_completo')
-            ->get(['id_persona', 'nombre_completo']);
-
-        return view('admin.creditos.form', [
+        return redirect()->route('admin.peliculas.edit', [
             'pelicula' => $pelicula,
-            'personas' => $personas,
-            'credito' => new PeliculaCredito(),
-            'modo' => 'crear',
-            'personaSeleccionada' => null,
-            'rolOriginal' => null,
+            'tab' => 'creditos',
+            'credito_accion' => 'crear',
         ]);
+    }
+
+    /** Buscar coincidencias para el selector de personas del editor. */
+    public function buscarPersonas(Request $request, Pelicula $pelicula)
+    {
+        $datos = $request->validate([
+            'q' => ['required', 'string', 'min:2', 'max:180'],
+        ]);
+        $termino = trim($datos['q']);
+
+        $personas = Persona::query()
+            ->where(function ($query) use ($termino) {
+                $query->where('nombre_completo', 'like', '%' . $termino . '%')
+                    ->orWhere('nombre_busqueda', 'like', '%' . $termino . '%');
+            })
+            ->orderByRaw('CASE WHEN nombre_completo LIKE ? THEN 0 ELSE 1 END', [$termino . '%'])
+            ->orderBy('nombre_completo')
+            ->limit(8)
+            ->get(['id_persona', 'nombre_completo', 'nombre_busqueda']);
+
+        return response()->json([
+            'resultados' => $personas->map(fn (Persona $persona) => [
+                'id' => $persona->id_persona,
+                'nombre' => $persona->nombre_completo,
+                'nombre_busqueda' => $persona->nombre_busqueda,
+            ]),
+        ]);
+    }
+
+    /** Crear una persona y asignarla a la película en una sola transacción. */
+    public function crearPersonaRapida(Request $request, Pelicula $pelicula)
+    {
+        $datos = $request->validate([
+            'nombre_completo' => ['required', 'string', 'max:180'],
+            'nombre_busqueda' => ['nullable', 'string', 'max:180'],
+            'url_foto' => [
+                'nullable', 'string', 'max:255',
+                function ($attribute, $value, $fail) {
+                    if ($value === null || trim($value) === '') {
+                        return;
+                    }
+                    $url = trim($value);
+                    $parts = parse_url($url);
+                    $valida = filter_var($url, FILTER_VALIDATE_URL)
+                        && is_array($parts)
+                        && strtolower($parts['scheme'] ?? '') === 'https'
+                        && ! empty($parts['host'])
+                        && ! isset($parts['user'])
+                        && ! isset($parts['pass'])
+                        && preg_match('/\.(jpg|jpeg|png|webp|avif)$/i', $parts['path'] ?? '') === 1;
+                    if (! $valida) {
+                        $fail('Introduce una URL HTTPS válida de imagen (JPG, PNG, WEBP o AVIF).');
+                    }
+                },
+            ],
+            'rol' => ['required', 'string', Rule::in(self::ROLES)],
+            'personaje' => ['nullable', 'string', 'max:150'],
+            'orden' => ['sometimes', 'required', 'integer', 'min:0', 'max:65535'],
+        ]);
+
+        $nombre = trim($datos['nombre_completo']);
+        $duplicado = Persona::query()
+            ->whereRaw('LOWER(TRIM(nombre_completo)) = ?', [mb_strtolower($nombre)])
+            ->first(['id_persona', 'nombre_completo']);
+
+        if ($duplicado) {
+            return response()->json([
+                'message' => 'Ya existe una persona con ese nombre. Selecciónala en los resultados para evitar duplicados.',
+                'persona_existente' => [
+                    'id' => $duplicado->id_persona,
+                    'nombre' => $duplicado->nombre_completo,
+                ],
+            ], 422);
+        }
+
+        $persona = DB::transaction(function () use ($datos, $nombre, $pelicula) {
+            $persona = Persona::query()->create([
+                'nombre_completo' => $nombre,
+                'nombre_busqueda' => isset($datos['nombre_busqueda']) && trim($datos['nombre_busqueda']) !== ''
+                    ? trim($datos['nombre_busqueda'])
+                    : null,
+                'foto' => isset($datos['url_foto']) && trim($datos['url_foto']) !== ''
+                    ? trim($datos['url_foto'])
+                    : null,
+            ]);
+
+            $existe = PeliculaCredito::query()
+                ->where('id_pelicula', $pelicula->id_pelicula)
+                ->where('id_persona', $persona->id_persona)
+                ->where('rol', $datos['rol'])
+                ->exists();
+            if ($existe) {
+                throw ValidationException::withMessages([
+                    'rol' => 'Esta persona ya tiene ese rol asignado a la película.',
+                ]);
+            }
+
+            PeliculaCredito::query()->create([
+                'id_pelicula' => $pelicula->id_pelicula,
+                'id_persona' => $persona->id_persona,
+                'rol' => $datos['rol'],
+                'personaje' => isset($datos['personaje']) && trim((string) $datos['personaje']) !== ''
+                    ? trim($datos['personaje'])
+                    : null,
+                'orden' => (int) ($datos['orden'] ?? 0),
+            ]);
+
+            return $persona;
+        });
+
+        return response()->json([
+            'message' => 'Persona registrada y crédito asignado correctamente.',
+            'redirect' => route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'creditos']),
+            'persona' => ['id' => $persona->id_persona, 'nombre' => $persona->nombre_completo],
+        ], 201);
     }
 
     /**
@@ -121,7 +219,7 @@ class PeliculaCreditoAdminController extends Controller
         });
 
         return redirect()
-            ->route('admin.peliculas.creditos.index', $pelicula)
+            ->route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'creditos'])
             ->with('success', 'Crédito registrado correctamente.');
     }
 
@@ -133,23 +231,14 @@ class PeliculaCreditoAdminController extends Controller
         int $persona,
         string $rol
     ) {
-        $credito = $this->buscarCredito(
-            $pelicula,
-            $persona,
-            $rol
-        );
+        $this->buscarCredito($pelicula, $persona, $rol);
 
-        $personas = Persona::query()
-            ->orderBy('nombre_completo')
-            ->get(['id_persona', 'nombre_completo']);
-
-        return view('admin.creditos.form', [
+        return redirect()->route('admin.peliculas.edit', [
             'pelicula' => $pelicula,
-            'personas' => $personas,
-            'credito' => $credito,
-            'modo' => 'editar',
-            'personaSeleccionada' => $credito->id_persona,
-            'rolOriginal' => $credito->rol,
+            'tab' => 'creditos',
+            'credito_accion' => 'editar',
+            'credito_persona' => $persona,
+            'credito_rol' => $rol,
         ]);
     }
 
@@ -229,7 +318,7 @@ class PeliculaCreditoAdminController extends Controller
         });
 
         return redirect()
-            ->route('admin.peliculas.creditos.index', $pelicula)
+            ->route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'creditos'])
             ->with('success', 'Crédito actualizado correctamente.');
     }
 
@@ -252,7 +341,7 @@ class PeliculaCreditoAdminController extends Controller
         }
 
         return redirect()
-            ->route('admin.peliculas.creditos.index', $pelicula)
+            ->route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'creditos'])
             ->with('success', 'Crédito eliminado correctamente.');
     }
 

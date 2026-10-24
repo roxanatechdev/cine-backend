@@ -1,4 +1,4 @@
-@extends('admin.layout')
+@extends('Admin.layout')
 
 @section('title', 'Créditos de película')
 
@@ -65,13 +65,27 @@
                     <td>{{ $credito->personaje ?: '—' }}</td>
                     <td>{{ $credito->orden ?? '—' }}</td>
                     <td class="text-end">
-                        <a href="{{ route(
-                                    'admin.peliculas.creditos.edit',
+                        <div class="d-inline-flex gap-2">
+                            <a href="{{ route(
+                                        'admin.peliculas.creditos.edit',
+                                        [$pelicula, $credito->id_persona, $credito->rol]
+                                    ) }}"
+                                class="btn btn-outline-light btn-sm">
+                                Editar
+                            </a>
+                            <form method="POST"
+                                action="{{ route(
+                                    'admin.peliculas.creditos.destroy',
                                     [$pelicula, $credito->id_persona, $credito->rol]
                                 ) }}"
-                            class="btn btn-outline-light btn-sm">
-                            Editar
-                        </a>
+                                onsubmit="return confirm('¿Eliminar este crédito de la película?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    Eliminar
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 @endforeach

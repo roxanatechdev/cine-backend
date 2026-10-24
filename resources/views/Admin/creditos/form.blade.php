@@ -1,4 +1,4 @@
-@extends('admin.layout')
+@extends('Admin.layout')
 
 @section('title', $modo === 'crear'
 ? 'Asignar crédito'
@@ -54,8 +54,7 @@
             <select id="id_persona"
                 name="id_persona"
                 class="form-select @error('id_persona') is-invalid @enderror"
-                required
-                @disabled($modo==='editar' )>
+                required>
                 <option value="">Selecciona una persona</option>
 
                 @foreach ($personas as $persona)
@@ -68,13 +67,6 @@
                 @endforeach
             </select>
 
-            @if ($modo === 'editar')
-            <div class="form-text muted">
-                La persona se mantiene para no alterar la identidad
-                del crédito existente.
-            </div>
-            @endif
-
             @error('id_persona')
             <div class="invalid-feedback">{{ $message }}</div>
             @enderror
@@ -85,14 +77,18 @@
                 Rol <span class="text-danger">*</span>
             </label>
 
-            <input id="rol"
+            <select id="rol"
                 name="rol"
-                type="text"
-                maxlength="50"
                 required
-                value="{{ old('rol', $credito->rol ?? '') }}"
-                class="form-control @error('rol') is-invalid @enderror"
-                placeholder="Ej. ACTOR, DIRECTOR">
+                class="form-select @error('rol') is-invalid @enderror">
+                <option value="">Selecciona un rol</option>
+                @foreach (['DIRECTOR', 'ACTOR', 'GUIONISTA', 'PRODUCTOR', 'COMPOSITOR'] as $rolDisponible)
+                <option value="{{ $rolDisponible }}"
+                    @selected(old('rol', $credito->rol ?? '') === $rolDisponible)>
+                    {{ $rolDisponible }}
+                </option>
+                @endforeach
+            </select>
 
             @error('rol')
             <div class="invalid-feedback">{{ $message }}</div>

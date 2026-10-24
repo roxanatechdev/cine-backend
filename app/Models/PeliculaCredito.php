@@ -21,7 +21,7 @@ class PeliculaCredito extends Model
 
     public $incrementing = false;
 
-    protected $keyType = 'string';
+    protected $keyType = 'int';
 
     /**
      * La tabla no utiliza timestamps convencionales.

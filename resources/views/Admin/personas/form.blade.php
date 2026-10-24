@@ -58,7 +58,7 @@
                         type="text"
                         id="nombre_completo"
                         name="nombre_completo"
-                        maxlength="150"
+                        maxlength="180"
                         required
                         autofocus
                         class="form-control @error('nombre_completo') is-invalid @enderror"
@@ -72,15 +72,14 @@
 
                 <div class="col-12">
                     <label for="nombre_busqueda" class="form-label">
-                        Nombre de búsqueda <span class="text-danger">*</span>
+                        Nombre de búsqueda <span class="muted">(opcional)</span>
                     </label>
 
                     <input
                         type="text"
                         id="nombre_busqueda"
                         name="nombre_busqueda"
-                        maxlength="150"
-                        required
+                        maxlength="180"
                         class="form-control @error('nombre_busqueda') is-invalid @enderror"
                         value="{{ old('nombre_busqueda', $persona->nombre_busqueda) }}"
                         placeholder="Ej. Christopher Nolan">
@@ -151,7 +150,7 @@
                     type="url"
                     id="url_foto"
                     name="url_foto"
-                    maxlength="500"
+                    maxlength="255"
                     class="form-control @error('url_foto') is-invalid @enderror"
                     value="{{ old('url_foto') }}"
                     placeholder="https://ejemplo.com/persona.jpg">

@@ -9,21 +9,25 @@ use Illuminate\Validation\Rule;
 
 class PaisAdminController extends Controller
 {
-    /**
-     * Listar países registrados.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $paises = Pais::query()
-            ->orderBy('nombre')
-            ->paginate(15);
+        $buscar = trim((string) $request->query('buscar', ''));
 
-        return view('admin.paises.index', compact('paises'));
+        $paises = Pais::query()
+            ->withCount('peliculas')
+            ->when($buscar !== '', function ($query) use ($buscar) {
+                $query->where(function ($subquery) use ($buscar) {
+                    $subquery->where('codigo', 'like', "%{$buscar}%")
+                        ->orWhere('nombre', 'like', "%{$buscar}%");
+                });
+            })
+            ->orderBy('nombre')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('admin.paises.index', compact('paises', 'buscar'));
     }
 
-    /**
-     * Mostrar el formulario de creación.
-     */
     public function create()
     {
         return view('admin.paises.form', [
@@ -32,96 +36,65 @@ class PaisAdminController extends Controller
         ]);
     }
 
-    /**
-     * Registrar un país.
-     */
     public function store(Request $request)
     {
         $datos = $request->validate([
-            'codigo' => [
-                'required',
-                'string',
-                'size:2',
-                'alpha',
-                'uppercase',
-                'unique:pais,codigo',
-            ],
-            'nombre' => [
-                'required',
-                'string',
-                'max:100',
-                'unique:pais,nombre',
-            ],
+            'codigo' => ['required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/', 'unique:pais,codigo'],
+            'nombre' => ['required', 'string', 'max:100', 'unique:pais,nombre'],
         ], [
             'codigo.required' => 'El código del país es obligatorio.',
             'codigo.size' => 'El código debe tener exactamente dos caracteres.',
-            'codigo.alpha' => 'El código solo puede contener letras.',
-            'codigo.uppercase' => 'El código debe estar en mayúsculas.',
+            'codigo.regex' => 'Usa dos letras mayúsculas, por ejemplo CL, AR o BR.',
             'codigo.unique' => 'Ya existe un país con ese código.',
             'nombre.required' => 'El nombre del país es obligatorio.',
             'nombre.max' => 'El nombre no puede superar los 100 caracteres.',
             'nombre.unique' => 'Ya existe un país con ese nombre.',
         ]);
 
+        $datos['codigo'] = strtoupper(trim($datos['codigo']));
+        $datos['nombre'] = trim($datos['nombre']);
         Pais::create($datos);
 
-        return redirect()
-            ->route('admin.paises.index')
+        return redirect()->route('admin.paises.index')
             ->with('success', 'País registrado correctamente.');
     }
 
-    /**
-     * Mostrar el formulario de edición.
-     */
     public function edit(string $pais)
     {
-        $pais = Pais::query()->findOrFail($pais);
-
         return view('admin.paises.form', [
-            'pais' => $pais,
+            'pais' => Pais::query()->findOrFail($pais),
             'modo' => 'editar',
         ]);
     }
 
-    /**
-     * Actualizar un país.
-     */
     public function update(Request $request, string $pais)
     {
-        $pais = Pais::query()->findOrFail($pais);
+        $registro = Pais::query()->findOrFail($pais);
 
         $datos = $request->validate([
             'codigo' => [
-                'required',
-                'string',
-                'size:2',
-                'alpha',
-                'uppercase',
-                Rule::unique('pais', 'codigo')
-                    ->ignore($pais->codigo, 'codigo'),
+                'required', 'string', 'size:2', 'regex:/^[A-Z]{2}$/',
+                Rule::unique('pais', 'codigo')->ignore($registro->codigo, 'codigo'),
             ],
             'nombre' => [
-                'required',
-                'string',
-                'max:100',
-                Rule::unique('pais', 'nombre')
-                    ->ignore($pais->codigo, 'codigo'),
+                'required', 'string', 'max:100',
+                Rule::unique('pais', 'nombre')->ignore($registro->codigo, 'codigo'),
             ],
         ], [
             'codigo.required' => 'El código del país es obligatorio.',
             'codigo.size' => 'El código debe tener exactamente dos caracteres.',
-            'codigo.alpha' => 'El código solo puede contener letras.',
-            'codigo.uppercase' => 'El código debe estar en mayúsculas.',
+            'codigo.regex' => 'Usa dos letras mayúsculas, por ejemplo CL, AR o BR.',
             'codigo.unique' => 'Ya existe un país con ese código.',
             'nombre.required' => 'El nombre del país es obligatorio.',
             'nombre.max' => 'El nombre no puede superar los 100 caracteres.',
             'nombre.unique' => 'Ya existe un país con ese nombre.',
         ]);
 
-        $pais->update($datos);
+        $datos['codigo'] = strtoupper(trim($datos['codigo']));
+        $datos['nombre'] = trim($datos['nombre']);
+        $registro->update($datos);
 
-        return redirect()
-            ->route('admin.paises.index')
+        return redirect()->route('admin.paises.index')
             ->with('success', 'País actualizado correctamente.');
     }
 }

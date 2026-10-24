@@ -1,0 +1,1004 @@
+/* ==========================================================================
+   CINEPRIME - ESTILOS GLOBALES & DESIGN SYSTEM
+   Enfoque: Diseño Web II - Proyecto Feria Informática 2026
+   Framework Base: Bootstrap 5 + Custom Properties
+   ========================================================================== */
+
+/* VARIABLES DE COLOR (DESIGN TOKENS - MATERIAL DESIGN 3 / DARK CINEMATIC) */
+:root {
+    /* --- Colores Principales (Brand / Identity) --- */
+    --cm-primary: #ffb4aa;
+    --cm-primary-container: #e50914;
+    /* Rojo Cine / Brand Hero */
+    --cm-on-primary: #690003;
+    --cm-on-primary-container: #fff7f6;
+    --cm-primary-fixed: #ffdad5;
+    --cm-primary-fixed-dim: #ffb4aa;
+    --cm-on-primary-fixed: #410001;
+    --cm-on-primary-fixed-variant: #930007;
+
+    /* --- Colores Secundarios --- */
+    --cm-secondary: #ffb3b3;
+    --cm-secondary-container: #da0137;
+    --cm-on-secondary: #680015;
+    --cm-on-secondary-container: #ffeceb;
+    --cm-secondary-fixed: #ffdad9;
+    --cm-secondary-fixed-dim: #ffb3b3;
+    --cm-on-secondary-fixed: #400009;
+    --cm-on-secondary-fixed-variant: #920022;
+
+    /* --- Colores Terciarios (Acentos / Ratings / Promos) --- */
+    --cm-tertiary: #e9c349;
+    /* Dorado / Estrellas */
+    --cm-tertiary-container: #cca730;
+    --cm-on-tertiary: #3c2f00;
+    --cm-on-tertiary-container: #4f3d00;
+    --cm-tertiary-fixed: #ffe088;
+    --cm-tertiary-fixed-dim: #e9c349;
+    --cm-on-tertiary-fixed: #241a00;
+    --cm-on-tertiary-fixed-variant: #574500;
+    --cm-tertiary-light-blue: #7bd0ff;
+
+    /* --- Superficies y Fondos (Dark Theme Elevation) --- */
+    --cm-background: #11131c;
+    --cm-on-background: #e1e1ef;
+    --cm-surface: #11131c;
+    --cm-on-surface: #e1e1ef;
+    --cm-surface-dim: #11131c;
+    --cm-surface-bright: #373943;
+    --cm-surface-variant: #32343e;
+    --cm-on-surface-variant: #e9bcb6;
+
+    /* --- Contenedores de Superficie (Capas) --- */
+    --cm-surface-container-lowest: #0c0e17;
+    --cm-surface-container-low: #191b24;
+    --cm-surface-container: #1d1f29;
+    --cm-surface-container-high: #282933;
+    --cm-surface-container-highest: #32343e;
+
+    /* --- Inversiones y Bordes --- */
+    --cm-inverse-surface: #e1e1ef;
+    --cm-inverse-on-surface: #2e303a;
+    --cm-inverse-primary: #c0000c;
+    --cm-outline: #af8782;
+    --cm-outline-variant: #5e3f3b;
+
+    /* --- Errores / Estado --- */
+    --cm-error: #ffb4ab;
+    --cm-error-container: #93000a;
+    --cm-on-error: #690005;
+    --cm-on-error-container: #ffdad6;
+
+    /* --- Tipografías --- */
+    --cm-font-display: 'Bebas Neue', cursive, sans-serif;
+    --cm-font-body: 'Montserrat', sans-serif;
+
+    /* --- Sombras Creadas / Resplandores Neón --- */
+    --cm-glow-primary: 0 0 20px rgba(229, 9, 20, 0.35);
+    --cm-glow-primary-intense: 0 0 28px rgba(229, 9, 20, 0.55);
+    --cm-glow-tertiary: 0 0 16px rgba(233, 195, 73, 0.35);
+}
+
+.fondo {
+    /* Método 2: Linear Gradient Diagonal */
+    background: linear-gradient(135deg,
+            #e5091466 0%,
+            #78050c26 30%,
+            #08080cf2 70%,
+            #08080c 100%);
+}
+
+/* 3. RESETS Y ESTILOS BASE COMPATIBLES CON BOOTSTRAP 5 */
+body {
+    background-color: var(--cm-background);
+    color: var(--cm-on-surface);
+    font-family: var(--cm-font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ocultar barra de desplazamiento manteniendo funcionalidad */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--cm-surface-container-highest);
+    border-radius: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--cm-background);
+}
+
+/* SELECCIÓN DE TEXTO */
+::selection {
+    background-color: var(--cm-primary-container);
+    color: var(--cm-on-primary-container);
+}
+
+/* Importación unificada desde Google Fonts CDN para Tipografías e Iconos */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+
+/* Clases base requeridas para el funcionamiento de los Material Symbols */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+}
+
+.material-symbols-rounded {
+    font-family: 'Material Symbols Rounded';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Adaptabilidad móvil para títulos Display */
+@media (max-width: 768px) {
+    .font-display-hero {
+        font-size: 2.75rem;
+        /* 44px */
+        line-height: 2.875rem;
+        /* 46px */
+    }
+
+    .font-headline-lg {
+        font-size: 1.875rem;
+        /* 30px */
+        line-height: 2.125rem;
+        /* 34px */
+    }
+}
+
+/* 5. UTILIDADES DE SUPERFICIE PERSONALIZADAS PARA BOOTSTRAP */
+.bg-cm-surface-lowest {
+    background-color: var(--cm-surface-container-lowest) !important;
+}
+
+.bg-cm-surface-low {
+    background-color: var(--cm-surface-container-low) !important;
+}
+
+.bg-cm-surface {
+    background-color: var(--cm-surface-container) !important;
+}
+
+.bg-cm-surface-high {
+    background-color: var(--cm-surface-container-high) !important;
+}
+
+.bg-cm-surface-highest {
+    background-color: var(--cm-surface-container-highest) !important;
+}
+
+.bg-cm-background {
+    background-color: var(--cm-background);
+}
+
+.text-cm-primary {
+    color: var(--cm-primary) !important;
+}
+
+.bg-primary-container {
+    background-color: var(--cm-primary-container) !important;
+}
+
+.text-cm-primary-container {
+    color: var(--cm-primary-container) !important;
+}
+
+.text-cm-tertiary {
+    color: var(--cm-tertiary) !important;
+}
+
+.text-cm-tertiary-light-blue {
+    color: var(--cm-tertiary-light-blue) !important;
+}
+
+.text-cm-variant {
+    color: var(--cm-on-surface-variant) !important;
+}
+
+.shadow-cm-glow {
+    box-shadow: var(--cm-glow-primary);
+}
+
+.shadow-cm-glow-intense {
+    box-shadow: var(--cm-glow-primary-intense);
+}
+
+.font-display {
+    font-family: var(--cm-font-display);
+}
+
+.font-body {
+    font-family: var(--cm-font-body);
+}
+
+.text-cm-brand-red {
+    color: var(--cm-primary-container, #e50914) !important;
+
+}
+
+.fs-6-5 {
+    font-size: 0.875rem;
+}
+
+.fs-7 {
+    font-size: 0.8125rem;
+}
+
+.fs-8 {
+    font-size: 0.75rem !important;
+}
+
+.fs-9 {
+    font-size: 0.6875rem !important;
+}
+
+.fs-10 {
+    font-size: 0.625rem !important;
+}
+
+.fill-icon {
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* =================================================================Ã
+   CLASE CSS PARA LIMITAR LÍNEAS EN TARJETAS (TRUNCATE MULTI-LÍNEA)
+   ================================================================= */
+
+/* Limitar a un máximo de 2 líneas */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    /* Cambia el número si prefieres 1 o 3 líneas */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Limitar a un máximo de 3 líneas */
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    /* Cambia el número según el espacio disponible */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   ESTILOS DE TABLA MODERNA (ESTILO IMAGEN 1)
+   ========================================================================== */
+
+.admin-table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--cm-on-surface, #e1e1ef);
+}
+
+.admin-table-row:hover {
+    background-color: var(--cm-surface-container-high, #282933) !important;
+}
+
+/* Formato de la carátula/póster de película */
+.movie-poster-wrapper {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.poster-placeholder {
+    background-color: #12141d !important;
+}
+
+/* Efecto hover suave en filas */
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+
+.table-custom tbody,
+.table-custom td,
+.table-custom tfoot,
+.table-custom th,
+.table-custom thead,
+.table-custom tr {
+    border-style: none !important;
+    border-width: 0 !important;
+}
+
+.table-custom tr:not(:last-child) {
+    box-shadow: inset 0 -0.5px 0 0 rgba(226, 177, 172, 0.1) !important;
+}
+
+.table-custom tr:last-child {
+    border-bottom: none;
+}
+
+.table-custom-2 th {
+    background-color: #0c0e179e !important;
+    border-top: 1px solid rgba(255 247 246 / 10%) !important;
+    border-bottom: 1px solid rgba(255 247 246 / 10%) !important;
+}
+
+.encabezados {
+    background-color: #0c0e17 !important;
+}
+
+/* Agrega espacio solo al inicio de la fila (primera celda) */
+.table-custom-2 td:first-child,
+.table-custom-2 th:first-child {
+    padding-left: 24px;
+}
+
+/* Agrega espacio solo al final de la fila (última celda) */
+.table-custom-2 td:last-child,
+.table-custom-2 th:last-child {
+    padding-right: 24px;
+}
+
+/* Agrega espacio solo al inicio de la fila (primera celda) */
+.table-custom-2 th:first-child {
+    border-radius: 0.31rem 0 0 0;
+}
+
+/* Agrega espacio solo al final de la fila (última celda) */
+.table-custom-2 th:last-child {
+    border-radius: 0 0.31rem 0 0;
+}
+
+#tabla-peliculas {
+    border: 1px solid rgba(255 247 246 / 10%);
+}
+
+/* Tarjeta Base */
+.custom-card {
+    background-color: #1d1f29 !important;
+    border: none !important;
+    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.table {
+    margin-bottom: 0 !important;
+}
+
+.multilinea {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.table-responsive {
+    overflow-y: hidden;
+}
+
+/* =========================================
+   Paginación Livewire - CinePrime
+   ========================================= */
+
+.catalogo-paginacion {
+    display: flex;
+    justify-content: flex-end;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.cineprime-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    max-width: 100%;
+    padding-left: 0;
+}
+
+.cineprime-pagination .page-item {
+    margin: 0;
+}
+
+.cineprime-pagination .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: #282933;
+    color: var(--cm-on-surface, #e1e1ef);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0.5rem;
+
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    text-decoration: none;
+    white-space: nowrap;
+
+    transition:
+        color 0.2s ease,
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+/* Botones: el elemento puede ser un button o un span */
+.cineprime-pagination button.page-link {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.pagination {
+    --bs-pagination-focus-box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.25) !important;
+}
+
+.cineprime-pagination .page-item:not(.active):not(.disabled) .page-link:hover {
+    color: #ffffff;
+    background-color: var(--cm-surface-container-high, #282933);
+    border-color: var(--cm-primary-container, #e50914);
+}
+
+.cineprime-pagination .page-item.active .page-link {
+    color: #ffffff;
+    background-color: var(--cm-primary-container, #e50914);
+    border-color: var(--cm-primary-container, #e50914);
+    font-weight: 700;
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.25);
+}
+
+.cineprime-pagination .page-item.disabled .page-link {
+    color: var(--cm-on-surface-variant, #c2c4d6);
+    background-color: var(--cm-surface, #11131c);
+    border-color: rgba(255, 255, 255, 0.04);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Clic / Foco con el color rojo corporativo */
+.cineprime-pagination .page-link:focus-visible {
+    outline: 2px solid var(--cm-primary-container, #e50914);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.2) !important;
+}
+
+.cineprime-pagination button.page-link:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+/* Adaptación a pantallas pequeñas */
+@media (max-width: 576px) {
+    .catalogo-paginacion {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .cineprime-pagination {
+        justify-content: flex-start;
+        gap: 0.25rem;
+    }
+
+    .cineprime-pagination .page-link {
+        min-width: 2.25rem;
+        min-height: 2.25rem;
+        padding: 0.4rem 0.55rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Aumenta el tamaño de las flechas en el primer y último elemento de la paginación */
+.cineprime-pagination .page-item:first-child .page-link,
+.cineprime-pagination .page-item:last-child .page-link {
+    font-size: 1.25rem !important;
+    line-height: 1;
+}
+
+/* ==========================================================================
+   TOOLTIPS PERSONALIZADOS - CINEPRIME
+   ========================================================================== */
+.tooltip {
+    --bs-tooltip-bg: var(--cm-surface-container-highest, #333440);
+    --bs-tooltip-color: var(--cm-on-surface, #e2e2ec);
+    --bs-tooltip-font-size: 0.75rem;
+    --bs-tooltip-padding-x: 0.65rem;
+    --bs-tooltip-padding-y: 0.4rem;
+    --bs-tooltip-border-radius: 0.5rem;
+    font-family: inherit;
+}
+
+.tooltip .tooltip-inner {
+    background-color: var(--bs-tooltip-bg);
+    color: var(--bs-tooltip-color);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* Ajuste de la flechita del tooltip según su orientación */
+.tooltip.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: var(--bs-tooltip-bg);
+}
+
+.tooltip.bs-tooltip-bottom .tooltip-arrow::before {
+    border-bottom-color: var(--bs-tooltip-bg);
+}
+
+.tooltip.bs-tooltip-start .tooltip-arrow::before {
+    border-left-color: var(--bs-tooltip-bg);
+}
+
+.tooltip.bs-tooltip-end .tooltip-arrow::before {
+    border-right-color: var(--bs-tooltip-bg);
+}
+
+
+/* ========================================================================
+   CONTRATO VISUAL COMPARTIDO — TABLAS ADMINISTRATIVAS
+   Solo reglas de presentación comunes. Cada módulo conserva sus columnas,
+   filtros, estados, acciones, estructura de datos y lógica de paginación.
+   ======================================================================== */
+.admin-table-card {
+    background-color: var(--cm-surface-container, #1d1f29) !important;
+    border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+    overflow: hidden;
+}
+
+.admin-table-filters {
+    background-color: rgba(12, 14, 23, 0.28);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.admin-table-filters .form-label {
+    color: var(--cm-on-surface-variant, #c2c4d6);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.admin-table-filters .form-control,
+.admin-table-filters .form-select {
+    background-color: var(--cm-surface-container-high, #282933);
+    color: var(--cm-on-surface, #e1e1ef);
+    border-color: rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    min-height: 2.65rem;
+}
+
+.admin-table-filters .form-control:focus,
+.admin-table-filters .form-select:focus {
+    border-color: rgba(229, 9, 20, 0.65);
+    box-shadow: 0 0 0 0.2rem rgba(229, 9, 20, 0.14);
+}
+
+.admin-table-count {
+    color: var(--cm-on-surface-variant, #c2c4d6);
+    font-size: 0.8125rem;
+}
+
+.admin-table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--cm-on-surface, #e1e1ef);
+    --bs-table-hover-bg: rgba(255, 255, 255, 0.035);
+    --bs-table-hover-color: var(--cm-on-surface, #e1e1ef);
+    margin-bottom: 0 !important;
+    vertical-align: middle;
+}
+
+.admin-table > thead > tr > th {
+    background-color: rgba(12, 14, 23, 0.68);
+    color: var(--cm-on-surface-variant, #c2c4d6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.045em;
+    padding: 0.95rem 1rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.admin-table > tbody > tr > td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+    padding: 0.9rem 1rem;
+    font-size: 0.875rem;
+}
+
+.admin-table > tbody > tr:last-child > td {
+    border-bottom: 0;
+}
+
+.admin-table-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    background-color: rgba(12, 14, 23, 0.18);
+}
+
+.admin-table-empty {
+    padding: 2rem 1.25rem;
+    text-align: center;
+}
+
+.admin-table-empty h2 {
+    color: var(--cm-on-surface, #e1e1ef);
+}
+
+.admin-table-empty p {
+    color: var(--cm-on-surface-variant, #c2c4d6);
+}
+
+@media (max-width: 575.98px) {
+    .admin-table > thead > tr > th,
+    .admin-table > tbody > tr > td {
+        padding: 0.75rem;
+    }
+
+    .admin-table-footer {
+        padding: 0.75rem !important;
+    }
+}
+
+/* Encabezado de página compartido para las tablas administrativas. */
+.admin-page-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-page-header__text {
+    min-width: 0;
+}
+
+.admin-page-header .admin-page-title {
+    margin: 0 0 0.4rem;
+    font-size: clamp(1.45rem, 2.5vw, 1.9rem);
+    font-weight: 750;
+    letter-spacing: -0.035em;
+    line-height: 1.25;
+}
+
+.admin-page-description {
+    color: var(--cm-on-surface-variant, #c2c4d6);
+    max-width: 76ch;
+}
+
+.admin-page-header__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Alineación común de los controles; cada formulario conserva sus campos y método. */
+.admin-table-filters form.row {
+    row-gap: 0.75rem !important;
+}
+
+.admin-table-filters .btn {
+    min-height: 2.65rem;
+    white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+    .admin-page-header {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .admin-page-header__actions {
+        justify-content: flex-end;
+        flex-shrink: 0;
+    }
+}
+
+/* Reorganización específica de la barra y columnas de Compradores. */
+.compradores-toolbar {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.85fr) minmax(20rem, 1.5fr) auto;
+    align-items: center;
+    gap: 1rem 1.5rem;
+}
+
+.compradores-toolbar__summary {
+    min-width: 0;
+}
+
+.compradores-toolbar__summary h2 {
+    color: var(--cm-on-surface, #e1e1ef);
+}
+
+.compradores-toolbar__search {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) auto auto;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.compradores-toolbar__action {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.compradores-toolbar__action .btn {
+    min-height: 2.65rem;
+}
+
+.admin-table--compradores {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.admin-table--compradores .comprador-col-nombre { width: 19%; }
+.admin-table--compradores .comprador-col-correo { width: 25%; }
+.admin-table--compradores .comprador-col-telefono { width: 13%; }
+.admin-table--compradores .comprador-col-tipo { width: 13%; }
+.admin-table--compradores .comprador-col-creado { width: 14%; }
+.admin-table--compradores .comprador-col-acciones { width: 16%; }
+
+.admin-table--compradores .comprador-nombre,
+.admin-table--compradores .comprador-correo,
+.admin-table--compradores .comprador-telefono {
+    overflow-wrap: anywhere;
+}
+
+.admin-table--compradores .comprador-correo {
+    color: var(--cm-on-surface-variant, #c2c4d6);
+}
+
+.admin-table--compradores td:last-child {
+    white-space: nowrap;
+}
+
+.admin-table--compradores td:last-child .btn {
+    margin: 0.1rem 0 0.1rem 0.2rem;
+}
+
+@media (max-width: 1199.98px) {
+    .compradores-toolbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .compradores-toolbar__summary {
+        grid-column: 1 / -1;
+    }
+
+    .compradores-toolbar__search {
+        grid-column: 1;
+    }
+
+    .compradores-toolbar__action {
+        grid-column: 2;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .compradores-toolbar {
+        grid-template-columns: minmax(0, 1fr);
+        align-items: stretch;
+    }
+
+    .compradores-toolbar__summary,
+    .compradores-toolbar__search,
+    .compradores-toolbar__action {
+        grid-column: 1;
+    }
+
+    .compradores-toolbar__search {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .compradores-toolbar__search input {
+        grid-column: 1 / -1;
+    }
+
+    .compradores-toolbar__action,
+    .compradores-toolbar__action .btn {
+        width: 100%;
+    }
+
+    .admin-table--compradores {
+        min-width: 860px;
+    }
+}
+
+
+/* Acciones compactas de tablas administrativas: patrón inspirado en Películas. */
+.admin-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.15rem;
+    height: 2.15rem;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    color: var(--cm-on-surface-variant, #c2c4d6);
+    background: transparent;
+    line-height: 1;
+    vertical-align: middle;
+    transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.admin-action-icon .material-symbols-outlined {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.admin-action-icon:hover {
+    color: var(--cm-on-surface, #f4f4fa);
+    background-color: rgba(255, 255, 255, 0.075);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+}
+
+.admin-action-icon:focus-visible {
+    outline: 2px solid var(--cm-primary, #ef1020);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(239, 16, 32, 0.12);
+}
+
+.admin-action-icon--danger {
+    color: #ff727c;
+}
+
+.admin-action-icon--danger:hover {
+    color: #ff9aa1;
+    background-color: rgba(239, 16, 32, 0.11);
+    border-color: rgba(239, 16, 32, 0.2);
+    box-shadow: 0 2px 8px rgba(239, 16, 32, 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-action-icon { transition: none; }
+}
+
+/* =========================================
+   Paginación compartida de tablas administrativas
+   Compatible con paginadores Blade/Laravel y Livewire.
+   No modifica las acciones ni el mecanismo de navegación.
+   ========================================= */
+.admin-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.admin-table-footer > * {
+    margin-bottom: 0;
+}
+
+.admin-table-footer nav {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Laravel coloca el resumen y los controles dentro del mismo contenedor nav. */
+.admin-table-footer nav > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem;
+    width: 100%;
+}
+
+.admin-table-footer nav > div > p {
+    margin: 0;
+}
+
+.admin-table-footer .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .35rem;
+    margin-bottom: 0;
+}
+
+.admin-table-footer .pagination .page-item {
+    margin: 0;
+}
+
+.admin-table-footer .pagination .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    padding: .5rem .75rem;
+    color: var(--cm-on-surface, #e1e1ef);
+    background-color: #282933;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: .5rem;
+    font-size: .875rem;
+    line-height: 1.25rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color .18s ease, background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.admin-table-footer .pagination .page-item:not(.active):not(.disabled) .page-link:hover {
+    color: #fff;
+    background-color: var(--cm-surface-container-high, #282933);
+    border-color: var(--cm-primary-container, #e50914);
+}
+
+.admin-table-footer .pagination .page-item.active .page-link {
+    color: #fff;
+    background-color: var(--cm-primary-container, #e50914);
+    border-color: var(--cm-primary-container, #e50914);
+    font-weight: 700;
+    box-shadow: 0 0 0 2px rgba(229, 9, 20, .2);
+}
+
+.admin-table-footer .pagination .page-item.disabled .page-link {
+    color: var(--cm-on-surface-variant, #c2c4d6);
+    background-color: var(--cm-surface, #11131c);
+    border-color: rgba(255, 255, 255, .04);
+    cursor: not-allowed;
+    opacity: .5;
+}
+
+.admin-table-footer .pagination .page-link:focus-visible {
+    outline: 2px solid var(--cm-primary-container, #e50914);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, .2);
+}
+
+@media (max-width: 575.98px) {
+    .admin-table-footer {
+        justify-content: center;
+    }
+
+    .admin-table-footer nav > div {
+        justify-content: center;
+    }
+
+    .admin-table-footer .pagination {
+        justify-content: center;
+        gap: .25rem;
+    }
+
+    .admin-table-footer .pagination .page-link {
+        min-width: 2.25rem;
+        min-height: 2.25rem;
+        padding: .4rem .55rem;
+        font-size: .8125rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-table-footer .pagination .page-link {
+        transition: none;
+    }
+}

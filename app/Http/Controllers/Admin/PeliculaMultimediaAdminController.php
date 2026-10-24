@@ -27,16 +27,12 @@ class PeliculaMultimediaAdminController extends Controller
      */
     public function index(Pelicula $pelicula)
     {
-        $multimedia = $pelicula->multimedia()
-            ->orderBy('tipo')
-            ->orderBy('orden')
-            ->orderBy('id_multimedia')
-            ->paginate(10);
-
-        return view('admin.multimedia.index', compact(
-            'pelicula',
-            'multimedia'
-        ));
+        // Conservar la ruta pública anterior, centralizando la navegación
+        // en la pestaña Multimedia del editor unificado.
+        return redirect()->route('admin.peliculas.edit', [
+            'pelicula' => $pelicula,
+            'tab' => 'multimedia',
+        ]);
     }
 
     /**
@@ -129,15 +125,22 @@ class PeliculaMultimediaAdminController extends Controller
             $datos['activo'] = $request->boolean('activo', true);
 
             DB::transaction(function () use ($datos, $pelicula) {
+                // Serializar cambios de principal por película para reducir
+                // el riesgo de dos recursos principales simultáneos.
+                $peliculaBloqueada = Pelicula::query()
+                    ->whereKey($pelicula->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
                 if ($datos['es_principal'] && $datos['activo']) {
-                    $this->quitarPrincipal($pelicula, $datos['tipo']);
+                    $this->quitarPrincipal($peliculaBloqueada, $datos['tipo']);
                 }
 
                 PeliculaMultimedia::create($datos);
             });
 
             return redirect()
-                ->route('admin.peliculas.multimedia.index', $pelicula)
+                ->route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'multimedia'])
                 ->with('success', 'Recurso multimedia registrado correctamente.');
         } catch (ValidationException $e) {
             throw $e;
@@ -193,6 +196,27 @@ class PeliculaMultimediaAdminController extends Controller
         try {
             $datos = $request->validate($this->reglas());
 
+            // Una película publicada debe conservar un póster principal activo.
+            if ($pelicula->estado === 'ACTIVA') {
+                $seguiraSiendoPosterPrincipal =
+                    $datos['tipo'] === 'POSTER' &&
+                    $request->boolean('es_principal') &&
+                    $request->boolean('activo');
+
+                $existeOtroPosterPrincipal = $pelicula->multimedia()
+                    ->where('tipo', 'POSTER')
+                    ->where('activo', 1)
+                    ->where('es_principal', 1)
+                    ->where('id_multimedia', '!=', $multimedia->id_multimedia)
+                    ->exists();
+
+                if (! $seguiraSiendoPosterPrincipal && ! $existeOtroPosterPrincipal) {
+                    throw ValidationException::withMessages([
+                        'es_principal' => 'Una película activa debe conservar al menos un póster activo marcado como principal.',
+                    ]);
+                }
+            }
+
             $urlAnterior = $multimedia->url;
 
             $urlNueva = $this->resolverFuente(
@@ -220,9 +244,14 @@ class PeliculaMultimediaAdminController extends Controller
                 $multimedia,
                 $datos
             ) {
+                $peliculaBloqueada = Pelicula::query()
+                    ->whereKey($pelicula->getKey())
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
                 if ($datos['es_principal'] && $datos['activo']) {
                     $this->quitarPrincipal(
-                        $pelicula,
+                        $peliculaBloqueada,
                         $datos['tipo'],
                         $multimedia->id_multimedia
                     );
@@ -244,7 +273,7 @@ class PeliculaMultimediaAdminController extends Controller
             }
 
             return redirect()
-                ->route('admin.peliculas.multimedia.index', $pelicula)
+                ->route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'multimedia'])
                 ->with('success', 'Recurso multimedia actualizado correctamente.');
         } catch (ValidationException $e) {
             throw $e;
@@ -387,7 +416,7 @@ class PeliculaMultimediaAdminController extends Controller
         PeliculaMultimedia $multimedia
     ): void {
         if (
-            $multimedia->id_pelicula !== $pelicula->id_pelicula
+            (int) $multimedia->id_pelicula !== (int) $pelicula->id_pelicula
         ) {
             abort(404);
         }
@@ -591,7 +620,32 @@ class PeliculaMultimediaAdminController extends Controller
     ) {
         $this->verificarPertenencia($pelicula, $multimedia);
 
+        if (
+            $pelicula->estado === 'ACTIVA' &&
+            $multimedia->tipo === 'POSTER' &&
+            $multimedia->activo &&
+            $multimedia->es_principal
+        ) {
+            $existeOtroPosterPrincipal = $pelicula->multimedia()
+                ->where('tipo', 'POSTER')
+                ->where('activo', 1)
+                ->where('es_principal', 1)
+                ->where('id_multimedia', '!=', $multimedia->id_multimedia)
+                ->exists();
+
+            if (! $existeOtroPosterPrincipal) {
+                throw ValidationException::withMessages([
+                    'multimedia' => 'No puedes desactivar el único póster principal de una película activa. Asigna primero otro póster principal o cambia la película a inactiva.',
+                ]);
+            }
+        }
+
         DB::transaction(function () use ($pelicula, $multimedia) {
+            Pelicula::query()
+                ->whereKey($pelicula->getKey())
+                ->lockForUpdate()
+                ->firstOrFail();
+
             $recurso = $pelicula->multimedia()
                 ->whereKey($multimedia->getKey())
                 ->lockForUpdate()
@@ -604,7 +658,7 @@ class PeliculaMultimediaAdminController extends Controller
         });
 
         return redirect()
-            ->route('admin.peliculas.multimedia.index', $pelicula)
+            ->route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'multimedia'])
             ->with(
                 'success',
                 'Recurso desactivado correctamente. El archivo se conserva.'

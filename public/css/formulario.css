@@ -1,0 +1,395 @@
+.titulo-main {
+    letter-spacing: 0.1rem;
+}
+
+.text-spacing {
+    letter-spacing: 0.075rem;
+}
+
+/* Contenedor principal de pestañas con scroll móvil */
+.editor-tabs-wrapper {
+    width: 100%;
+    position: relative;
+}
+
+.editor-underline-tabs {
+    /* Ocultar barra de scroll predeterminada sin perder funcionalidad táctil en móvil */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE y Edge */
+}
+
+.editor-underline-tabs::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+/* Estilo individual plano para cada pestaña */
+.editor-tab-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0.25rem;
+    font-size: 0.925rem;
+    font-weight: 500;
+    color: var(--cm-on-surface-variant, #a0a5b5);
+    background-color: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: color 0.4s ease, border-color 0.25s ease;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: -1px;
+    /* Alineación perfecta con la línea divisoria base */
+}
+
+/* Iconos de las pestañas */
+.editor-tab-item .tab-icon {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+/* Estado Hover (Al pasar el ratón) */
+.editor-tab-item:hover:not(.disabled-tab) {
+    color: #ffffff;
+}
+
+.editor-tab-item:hover:not(.disabled-tab) .tab-icon {
+    transform: translateY(-1px);
+}
+
+/* Estado Activo (Pestaña Seleccionada) */
+.editor-tab-item.active {
+    color: #ffffff !important;
+    font-weight: 600;
+    border-bottom: 3px solid var(--cm-primary-container, #e50914) !important;
+    background-color: #14151a;
+}
+
+/* Efecto de resplandor / neón inferior en pestaña activa */
+.editor-tab-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--cm-primary-container, #e50914);
+    border-radius: 3px 3px 0 0;
+}
+
+.editor-tab-item.active .tab-icon {
+    color: var(--cm-primary-container, #e9323b78);
+}
+
+/* Estado Bloqueado (Modo Creación) */
+.editor-tab-item.disabled-tab {
+    opacity: 0.4;
+    cursor: not-allowed;
+    color: var(--cm-on-surface-variant, #7e8394) !important;
+}
+
+/* =================================================================aya
+   SISTEMA DE DISEÑO: FORMULARIOS CINEPRIME (.form-cm)
+   =================================================================== */
+
+:root {
+    --cm-bg-surface: #1e1f29;
+    --cm-bg-input: #14151a;
+    --cm-surface-high: #282933;
+    --cm-border-soft: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --cm-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.2);
+    --cm-focus-shadow: 0 0 0 3px rgba(229, 9, 20, 0.15);
+    /* Sombra sobria y sutil en focus */
+    --cm-primary: #e50914;
+    --cm-text-main: #f8f9fa;
+    --cm-text-muted: #94a3b8;
+}
+
+.form-cm {
+    background-color: var(--cm-bg-surface);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    color: var(--cm-text-main);
+    overflow: hidden;
+}
+
+/* Secciones internas del formulario */
+.form-cm__section {
+    padding: 1.5rem;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+    /* Línea suave sin border duro */
+}
+
+@media (min-width: 768px) {
+    .form-cm__section {
+        padding: 2rem;
+    }
+}
+
+/* Títulos y Subtítulos */
+.form-cm__title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    color: var(--cm-text-main);
+    margin-bottom: 0.25rem;
+}
+
+.form-cm__subtitle {
+    font-size: 0.875rem;
+    color: var(--cm-text-muted);
+    margin-bottom: 0;
+}
+
+/* Grupos de campos */
+.form-cm__group {
+    margin-bottom: 1.25rem;
+    position: relative;
+}
+
+/* Etiquetas (Labels) con iconos opcionales */
+.form-cm__label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--cm-text-main);
+    margin-bottom: 0.5rem;
+}
+
+.form-cm__label .required{
+    color: var(--cm-primary);
+}
+
+/* Iconos integrados */
+.form-cm__icon {
+    font-size: 1.1rem;
+    color: var(--cm-text-muted);
+}
+
+/* Inputs, Textareas y Controles base */
+.form-cm__control {
+    width: 100%;
+    background-color: var(--cm-bg-input) !important;
+    border: none !important;
+    box-shadow: var(--cm-border-soft) !important;
+    color: var(--cm-text-main) !important;
+    padding: 0.65rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.form-cm__control::placeholder {
+    color: rgba(148, 163, 184, 0.5);
+}
+
+.form-cm__control:hover {
+    box-shadow: var(--cm-border-hover) !important;
+}
+
+.form-cm__control:focus {
+    background-color: var(--cm-bg-input) !important;
+    box-shadow: var(--cm-focus-shadow), var(--cm-border-hover) !important;
+    outline: none;
+}
+
+/* Estados de Error y Validación */
+.form-cm__control.is-invalid {
+    box-shadow: 0 0 0 1px #dc3545 !important;
+}
+
+.form-cm__feedback {
+    font-size: 0.8rem;
+    color: #dc3545;
+    margin-top: 0.35rem;
+}
+
+/* Textos de ayuda (Helpers) */
+.form-cm__text {
+    font-size: 0.8rem;
+    color: var(--cm-text-muted);
+    margin-top: 0.35rem;
+}
+
+/* Estados Checked / Radio / Checkbox sobrios */
+.form-cm__check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.form-cm__check input[type="checkbox"],
+.form-cm__check input[type="radio"] {
+    appearance: none;
+    background-color: var(--cm-bg-input);
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 0.25rem;
+    box-shadow: var(--cm-border-soft);
+    display: grid;
+    place-content: center;
+    transition: all 0.2s ease;
+}
+
+.form-cm__check input[type="checkbox"]:checked,
+.form-cm__check input[type="radio"]:checked {
+    background-color: var(--cm-primary);
+    box-shadow: none;
+}
+
+.form-cm__check input[type="checkbox"]:checked::before {
+    content: "✓";
+    font-size: 0.85rem;
+    color: white;
+    font-weight: bold;
+}
+
+/* ==========================================================================
+   CINEPRIME - ESTILOS PARA DROPDOWNS PERSONALIZADOS (.form-cm__dropdown)
+   ========================================================================== */
+
+.form-cm__dropdown {
+    position: relative;
+    width: 100%;
+}
+
+
+/* Botón Toggle del Dropdown */
+.form-cm__select-toggle.form-cm__control {
+    background-color: var(--cm-surface-container, #1d1f29);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--cm-on-surface, #e1e1ef);
+    border-radius: 0.5rem;
+    padding: 0.65rem 1rem;
+    font-family: var(--cm-font-body, 'Montserrat', sans-serif);
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    transition: all 0.25s ease;
+}
+
+/* Personalización de la flecha indicadora nativa */
+.form-cm__select-toggle.dropdown-toggle::after {
+    margin-left: auto;
+    border-top-color: var(--cm-on-surface-variant, #e9bcb6);
+    transition: transform 0.25s ease;
+}
+
+.form-cm__select-toggle.dropdown-toggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+}
+
+/* Estados Hover y Focus (Resplandor sutil acorde a la paleta) */
+.form-cm__select-toggle.form-cm__control:hover {
+    background-color: var(--cm-surface-container-high, #282933);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+.form-cm__select-toggle.form-cm__control:focus,
+.form-cm__select-toggle.form-cm__control.show {
+    background-color: var(--cm-surface-container-high, #282933);
+    border-color: var(--cm-primary-container, #e50914);
+    box-shadow: 0 0 0 0.2rem rgba(229, 9, 20, 0.25);
+    color: #ffffff;
+    outline: none;
+}
+
+/* Estado de Error (is-invalid) */
+.form-cm__select-toggle.form-cm__control.is-invalid {
+    border-color: var(--cm-error, #ffb4ab) !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 180, 171, 0.2) !important;
+}
+
+/* Menú Desplegable Flotante */
+.form-cm__select-menu.dropdown-menu {
+    background-color: var(--cm-surface-container-high, #282933) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+    margin-top: 0.35rem !important;
+    z-index: 1050;
+    /* Control de altura y scroll interno */
+    max-height: 220px;
+    /* Puedes ajustar este valor según cuántas opciones quieras mostrar a la vez */
+    overflow-y: auto;
+    /* Habilita el scroll vertical si la lista es muy larga */
+    overflow-x: hidden;
+}
+
+/* 1. Forzar la visibilidad del scroll en Brave y Chromium (anulando el reseteo global) */
+.form-cm__select-menu::-webkit-scrollbar {
+    display: block !important;
+    width: 6px !important;
+}
+
+/* 2. Fondo tenue de la pista del scroll */
+.form-cm__select-menu::-webkit-scrollbar-track {
+    background: var(--cm-surface-container, #1d1f29) !important;
+    border-radius: 4px !important;
+    margin: 4px 0 !important;
+}
+
+/* 3. Barra deslizante (Thumb) */
+.form-cm__select-menu::-webkit-scrollbar-thumb {
+    background: var(--cm-surface-container-highest, #32343e) !important;
+    border-radius: 4px !important;
+}
+
+/* 4. Color al pasar el cursor */
+.form-cm__select-menu::-webkit-scrollbar-thumb:hover {
+    background: var(--cm-primary-container, #e50914) !important;
+}
+
+/* 5. Compatibilidad nativa para Firefox (por si acaso) */
+.form-cm__select-menu {
+    scrollbar-width: thin;
+    scrollbar-color: var(--cm-surface-container-highest, #32343e) var(--cm-surface-container, #1d1f29);
+}
+
+/* Opciones del Menú (dropdown-item) */
+.form-cm__select-menu .dropdown-item {
+    color: var(--cm-on-surface, #e1e1ef);
+    font-family: var(--cm-font-body, 'Montserrat', sans-serif);
+    font-size: 0.875rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 0.4rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.form-cm__select-menu .dropdown-item:hover,
+.form-cm__select-menu .dropdown-item:focus {
+    background-color: var(--cm-surface-container-highest, #32343e);
+    color: #ffffff;
+}
+
+/* Opción Activa / Seleccionada (Usa el rojo de marca CinePrime) */
+.form-cm__select-menu .dropdown-item.active,
+.form-cm__select-menu .dropdown-item[aria-current="true"] {
+    background-color: var(--cm-primary-container, #e50914) !important;
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+/* Textos de ayuda y mensajes de error inferiores */
+.form-cm__text {
+    font-size: 0.775rem;
+    color: var(--cm-on-surface-variant, #e9bcb6);
+    margin-top: 0.35rem;
+}
+
+.form-cm__feedback {
+    font-size: 0.775rem;
+    color: var(--cm-error, #ffb4ab);
+    margin-top: 0.35rem;
+}
