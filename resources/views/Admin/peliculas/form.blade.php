@@ -39,10 +39,9 @@ $pestana = $pestana ?? 'informacion';
                 } }}
             </span>
             @endif
-
-            <a href="{{ route('admin.peliculas.index') }}"
-                class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2">
-                <span aria-hidden="true">←</span> Volver al catálogo
+            <a href="{{ route('admin.peliculas.index') }}" class="btn admin-back-btn d-inline-flex align-items-center gap-2 rounded-3 px-3 py-2 text-decoration-none">
+                <span class="material-symbols-outlined fs-6" aria-hidden="true">arrow_back</span>
+                <span>Volver al catálogo</span>
             </a>
         </div>
 
@@ -241,6 +240,7 @@ $pestana = $pestana ?? 'informacion';
                                 <span class="material-symbols-outlined form-cm__icon">verified_user</span>
                                 <span>Clasificación por edades</span>
                             </label>
+
                             <x-form.select
                                 name="clasificacion"
                                 :options="[
@@ -496,54 +496,47 @@ $pestana = $pestana ?? 'informacion';
         @endif
 
         @if ($creditoModo === 'editar')
-        <div class="modal fade" id="modalEditarCredito" tabindex="-1" aria-labelledby="modalEditarCreditoTitulo" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                <div class="modal-content custom-card border-0 shadow-lg">
-                    <div class="modal-header border-bottom border-secondary border-opacity-10 pb-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="modal-icon-wrapper bg-danger bg-opacity-10 p-2 rounded-3 d-flex align-items-center justify-content-center">
-                                <span class="material-symbols-outlined fs-4" aria-hidden="true">edit</span>
-                            </div>
-                            <div>
-                                <h2 class="modal-title fs-5 fw-semibold text-white mb-1" id="modalEditarCreditoTitulo">Editar crédito de la película</h2>
-                                <p class="text-muted small mb-0">Actualiza el rol, personaje y orden de participación.</p>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <div class="form-cm mt-4" aria-labelledby="form-credito-titulo">
+            <form method="POST" action="{{ route('admin.peliculas.creditos.update', [$pelicula, $credito->id_persona, $credito->rol]) }}">
+                @csrf
+                @method('PUT')
+                <section class="form-cm__section">
+                    <div class="mb-4">
+                        <h3 id="form-credito-titulo" class="form-cm__title">Editar crédito</h3>
+                        <p class="form-cm__subtitle">Actualiza el rol, el personaje y el orden de aparición de esta persona.</p>
                     </div>
-                    <form method="POST" action="{{ route('admin.peliculas.creditos.update', [$pelicula, $credito->id_persona, $credito->rol]) }}">
-                        @csrf
-                        @method('PUT')
-                        <div class="modal-body pt-4">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label for="credito_persona_edicion" class="form-cm__label">Persona</label>
-                                    <input id="credito_persona_edicion" type="text" class="form-cm__control" value="{{ $credito->persona?->nombre_completo }}" readonly>
-                                    <input type="hidden" name="id_persona" value="{{ old('id_persona', $credito->id_persona) }}">
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <label class="form-cm__label" for="credito_rol">Rol <span class="text-danger">*</span></label>
-                                    <x-form.select name="rol" id="credito_rol" :options="array_combine(['DIRECTOR', 'ACTOR', 'GUIONISTA', 'PRODUCTOR', 'COMPOSITOR'], ['DIRECTOR', 'ACTOR', 'GUIONISTA', 'PRODUCTOR', 'COMPOSITOR'])" :selected="old('rol', $credito->rol)" placeholder="Selecciona un rol" />
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <label for="credito_personaje" class="form-cm__label">Personaje</label>
-                                    <input id="credito_personaje" name="personaje" type="text" maxlength="150" value="{{ old('personaje', $credito->personaje ?? '') }}" class="form-cm__control @error('personaje') is-invalid @enderror" placeholder="Nombre del personaje, si corresponde">
-                                    @error('personaje') <div class="form-cm__feedback" role="alert">{{ $message }}</div> @enderror
-                                </div>
-                                <div class="col-12 col-md-6">
-                                    <label for="credito_orden" class="form-cm__label">Orden de aparición</label>
-                                    <input id="credito_orden" name="orden" type="number" min="0" max="65535" step="1" value="{{ old('orden', $credito->orden ?? 0) }}" class="form-cm__control @error('orden') is-invalid @enderror">
-                                    @error('orden') <div class="form-cm__feedback" role="alert">{{ $message }}</div> @enderror
-                                </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="form-cm__group">
+                                <label for="credito_buscar_persona" class="form-cm__label">Persona</label>
+                                <input id="credito_buscar_persona" type="text" class="form-cm__control" value="{{ $credito->persona?->nombre_completo }}" readonly aria-describedby="credito-persona-fija-ayuda">
+                                <div id="credito-persona-fija-ayuda" class="form-cm__text">La persona del crédito no se cambia desde esta edición.</div>
+                                <input id="credito_id_persona" type="hidden" name="id_persona" value="{{ old('id_persona', $credito->id_persona) }}">
                             </div>
                         </div>
-                        <div class="modal-footer border-top border-secondary border-opacity-10">
-                            <a class="btn btn-outline-light px-4" href="{{ route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'creditos']) }}">Cancelar</a>
-                            <button type="submit" class="btn btn-primary px-4">Guardar cambios</button>
+                        <div class="col-12 col-md-6">
+                            <div class="form-cm__group">
+                                <label class="form-cm__label" for="credito_rol_toggle">Rol <span class="required" aria-hidden="true">*</span></label>
+                                <x-form.select name="rol" id="credito_rol" :options="array_combine(['DIRECTOR', 'ACTOR', 'GUIONISTA', 'PRODUCTOR', 'COMPOSITOR'], ['DIRECTOR', 'ACTOR', 'GUIONISTA', 'PRODUCTOR', 'COMPOSITOR'])" :selected="$credito->rol" placeholder="Selecciona un rol" />
+                            </div>
                         </div>
-                    </form>
-                </div>
-            </div>
+                        <div class="col-12 col-md-6">
+                            <x-form.field name="personaje" label="Personaje" id="credito_personaje" :show-error="false" help="Opcional. Máximo 150 caracteres.">
+                                <x-form.input name="personaje" id="credito_personaje" :value="$credito->personaje ?? ''" maxlength="150" placeholder="Nombre del personaje, si corresponde" aria-describedby="credito_personaje-ayuda" />
+                            </x-form.field>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <x-form.field name="orden" label="Orden de aparición" id="credito_orden" :show-error="false" help="Número entero entre 0 y 65535.">
+                                <x-form.input name="orden" id="credito_orden" type="number" :value="$credito->orden ?? 0" min="0" max="65535" step="1" aria-describedby="credito_orden-ayuda" />
+                            </x-form.field>
+                        </div>
+                    </div>
+                    <x-form.actions>
+                        <a class="btn btn-outline-light" href="{{ route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'creditos']) }}">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </x-form.actions>
+                </section>
+            </form>
         </div>
         @endif
     </section>
@@ -610,21 +603,21 @@ $pestana = $pestana ?? 'informacion';
 
                                 <div class="row g-3">
                                     <div class="col-12 col-md-6">
-                                        <label for="credito_personaje" class="form-cm__label">Personaje</label>
-                                        <input id="credito_personaje" name="personaje" type="text" maxlength="150" value="{{ old('personaje', '') }}" class="form-cm__control @error('personaje') is-invalid @enderror" placeholder="Nombre del personaje, si corresponde">
-                                        @error('personaje') <div class="form-cm__feedback">{{ $message }}</div> @enderror
+                                        <x-form.field name="personaje" label="Personaje" id="credito_personaje" :show-error="false" help="Opcional. Máximo 150 caracteres.">
+                                            <x-form.input name="personaje" id="credito_personaje" :value="''" maxlength="150" placeholder="Nombre del personaje, si corresponde" aria-describedby="credito_personaje-ayuda" />
+                                        </x-form.field>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label for="credito_orden" class="form-cm__label">Orden de aparición</label>
-                                        <input id="credito_orden" name="orden" type="number" min="0" max="65535" step="1" value="{{ old('orden', 0) }}" class="form-cm__control @error('orden') is-invalid @enderror">
-                                        @error('orden') <div class="form-cm__feedback">{{ $message }}</div> @enderror
+                                        <x-form.field name="orden" label="Orden de aparición" id="credito_orden" :show-error="false" help="Número entero entre 0 y 65535.">
+                                            <x-form.input name="orden" id="credito_orden" type="number" :value="0" min="0" max="65535" step="1" aria-describedby="credito_orden-ayuda" />
+                                        </x-form.field>
                                     </div>
                                 </div>
 
-                                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top border-secondary border-opacity-10">
+                                <x-form.actions>
                                     <button type="button" class="btn btn-outline-light px-4" data-bs-dismiss="modal">Cancelar</button>
                                     <button type="submit" class="btn btn-primary px-4">Asignar crédito</button>
-                                </div>
+                                </x-form.actions>
                             </form>
                         </div>
 
@@ -637,25 +630,27 @@ $pestana = $pestana ?? 'informacion';
                                     La persona y su crédito se guardarán juntos. Si ya existe en la base de datos, búscala en la pestaña anterior.
                                 </div>
 
-                                <div class="form-cm__group mb-3">
-                                    <label for="persona_rapida_nombre" class="form-cm__label">Nombre completo <span class="text-danger">*</span></label>
-                                    <input id="persona_rapida_nombre" name="nombre_completo" type="text" maxlength="180" required class="form-cm__control" autocomplete="name" placeholder="Ej. Christopher Nolan">
+                                <div class="mb-3">
+                                    <x-form.field name="nombre_completo" label="Nombre completo" id="persona_rapida_nombre" required>
+                                        <x-form.input name="nombre_completo" id="persona_rapida_nombre" maxlength="180" required autocomplete="name" placeholder="Ej. Christopher Nolan" />
+                                    </x-form.field>
+                                </div>
+
+                                <div class="mb-3">
+                                    <x-form.field name="nombre_busqueda" label="Nombre alternativo / Alias" id="persona_rapida_busqueda">
+                                        <x-form.input name="nombre_busqueda" id="persona_rapida_busqueda" maxlength="180" placeholder="Ej. Chris Nolan" />
+                                    </x-form.field>
                                 </div>
 
                                 <div class="form-cm__group mb-3">
-                                    <label for="persona_rapida_busqueda" class="form-cm__label">Nombre alternativo / Alias</label>
-                                    <input id="persona_rapida_busqueda" name="nombre_busqueda" type="text" maxlength="180" class="form-cm__control" placeholder="Ej. Chris Nolan">
-                                </div>
-
-                                <div class="form-cm__group mb-3">
-                                    <label class="form-cm__label" for="persona_rapida_rol">Rol en la película <span class="text-danger">*</span></label>
+                                    <label class="form-cm__label" for="persona_rapida_rol_toggle">Rol en la película <span class="text-danger">*</span></label>
                                     <x-form.select name="rol" id="persona_rapida_rol" :options="array_combine(['DIRECTOR', 'ACTOR', 'GUIONISTA', 'PRODUCTOR', 'COMPOSITOR'], ['DIRECTOR', 'ACTOR', 'GUIONISTA', 'PRODUCTOR', 'COMPOSITOR'])" :selected="old('rol', '')" placeholder="Selecciona un rol" />
                                 </div>
 
-                                <div class="form-cm__group mb-3">
-                                    <label for="persona_rapida_foto" class="form-cm__label">URL de fotografía (opcional)</label>
-                                    <input id="persona_rapida_foto" name="url_foto" type="url" maxlength="255" class="form-cm__control" placeholder="https://ejemplo.com/persona.jpg">
-                                    <div class="form-cm__text">Debe ser una URL HTTPS (JPG, PNG, WEBP o AVIF).</div>
+                                <div class="mb-3">
+                                    <x-form.field name="url_foto" label="URL de fotografía (opcional)" id="persona_rapida_foto" help="Debe ser una URL HTTPS (JPG, PNG, WEBP o AVIF).">
+                                        <x-form.input name="url_foto" id="persona_rapida_foto" type="url" maxlength="255" placeholder="https://ejemplo.com/persona.jpg" aria-describedby="persona_rapida_foto-ayuda" />
+                                    </x-form.field>
                                 </div>
 
                                 <div id="persona-rapida-error" class="alert alert-danger py-2" role="alert" hidden></div>
@@ -781,45 +776,7 @@ $pestana = $pestana ?? 'informacion';
     @endif
 </div>
 
-@if ($pestana === 'creditos' && $creditoModo === 'editar')
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const modal = document.getElementById('modalEditarCredito');
-        if (!modal) return;
-
-        // El dropdown personalizado de x-form.select debe funcionar también dentro del modal.
-        modal.addEventListener('click', (event) => {
-            const opcion = event.target.closest('[data-dropdown-option]');
-            if (!opcion || !modal.contains(opcion)) return;
-            const contenedor = opcion.closest('.form-cm__dropdown');
-            const campo = contenedor?.querySelector('input[type="hidden"]');
-            const etiqueta = contenedor?.querySelector('[data-dropdown-label]');
-            if (!campo || !etiqueta) return;
-            campo.value = opcion.dataset.value || '';
-            etiqueta.textContent = opcion.textContent.trim();
-            contenedor.querySelectorAll('[data-dropdown-option]').forEach(item => {
-                item.classList.toggle('active', item === opcion);
-                item.removeAttribute('aria-current');
-            });
-            opcion.setAttribute('aria-current', 'true');
-            campo.dispatchEvent(new Event('change', {
-                bubbles: true
-            }));
-            window.bootstrap?.Dropdown?.getOrCreateInstance(
-                contenedor.querySelector('[data-bs-toggle="dropdown"]')
-            )?.hide();
-        });
-
-        if (window.bootstrap?.Modal) {
-            window.bootstrap.Modal.getOrCreateInstance(modal).show();
-        }
-    });
-</script>
-@endpush
-@endif
-
-@if ($pestana === 'creditos' && $creditoModo === 'crear')
+@if ($pestana === 'creditos' && $creditoModo)
 @push('scripts')
 <script>
     (() => {

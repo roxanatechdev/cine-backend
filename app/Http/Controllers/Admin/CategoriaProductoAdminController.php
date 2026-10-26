@@ -9,32 +9,16 @@ use Illuminate\Validation\Rule;
 
 class CategoriaProductoAdminController extends Controller
 {
-    /** Mostrar el catálogo con búsqueda y filtro de estado. */
-    public function index(Request $request)
+    /** Mostrar el contenedor de la tabla reactiva del catálogo. */
+    public function index()
     {
-        $filtros = $request->validate([
-            'q' => ['nullable', 'string', 'max:80'],
-            'estado' => ['nullable', Rule::in(['0', '1'])],
-        ]);
-
-        $categorias = CategoriaProducto::query()
-            ->when($filtros['q'] ?? null, function ($query, $nombre) {
-                $query->where('nombre', 'like', '%' . $nombre . '%');
-            })
-            ->when(array_key_exists('estado', $filtros) && $filtros['estado'] !== null && $filtros['estado'] !== '', function ($query) use ($filtros) {
-                $query->where('activo', (int) $filtros['estado']);
-            })
-            ->orderBy('nombre')
-            ->paginate(10)
-            ->withQueryString();
-
-        return view('Admin.categorias-producto.index', compact('categorias', 'filtros'));
+        return view('admin.categorias-producto.index');
     }
 
     /** Mostrar formulario de creación. */
     public function create()
     {
-        return view('Admin.categorias-producto.form', [
+        return view('admin.categorias-producto.form', [
             'categoriaProducto' => new CategoriaProducto(),
             'modo' => 'crear',
         ]);
@@ -54,7 +38,7 @@ class CategoriaProductoAdminController extends Controller
     /** Mostrar formulario de edición. */
     public function edit(CategoriaProducto $categoriaProducto)
     {
-        return view('Admin.categorias-producto.form', [
+        return view('admin.categorias-producto.form', [
             'categoriaProducto' => $categoriaProducto,
             'modo' => 'editar',
         ]);
@@ -86,7 +70,7 @@ class CategoriaProductoAdminController extends Controller
             : 'Categoría desactivada correctamente.';
 
         return redirect()
-            ->route('admin.categorias-producto.index', $request->only('q', 'estado', 'page'))
+            ->route('admin.categorias-producto.index', $request->only('q', 'activo', 'estado', 'per_page', 'orden', 'direccion', 'page'))
             ->with('success', $mensaje);
     }
 

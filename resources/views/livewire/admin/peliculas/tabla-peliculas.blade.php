@@ -442,29 +442,11 @@
         </div>
 
         {{-- Resumen y navegación de páginas --}}
-        @if ($this->peliculas->total() > 0)
-        <div class="footer-table d-flex flex-column flex-md-row
-                justify-content-between align-items-center
-                gap-3 pt-3 border-top border-secondary border-opacity-50 px-3">
-
-            <!-- 1. Contador de resultados -->
-            <div class="text-secondary small">
-                Mostrando
-                <strong class="text-white">{{ $this->peliculas->firstItem() ?? 0 }}</strong>
-                a
-                <strong class="text-white">{{ $this->peliculas->lastItem() ?? 0 }}</strong>
-                de
-                <strong class="text-white">{{ $this->peliculas->total() }}</strong>
-                películas
-            </div>
-
-            @if ($this->peliculas->hasPages())
-            <x-admin.tabla.paginacion id="paginacion" class="catalogo-paginacion">
-                {{ $this->peliculas->links('vendor.livewire.pagination-bootstrap') }}
-            </x-admin.tabla.paginacion>
-            @endif
-
-        </div>
-        @endif
+        <x-admin.tabla.pie
+            :paginator="$this->peliculas"
+            label="películas"
+            id="paginacion"
+            class="catalogo-paginacion"
+        />
     </section>
 </x-admin.tabla.contenedor>

@@ -13,40 +13,7 @@ class TicketAdminController extends Controller
 
     public function index(Request $request)
     {
-        $filtros = $request->validate([
-            'buscar' => ['nullable', 'string', 'max:150'],
-            'estado' => ['nullable', Rule::in(self::ESTADOS)],
-        ]);
-
-        $tickets = DB::table('ticket as t')
-            ->join('compra as c', 'c.id_compra', '=', 't.id_compra')
-            ->join('comprador as co', 'co.id_comprador', '=', 'c.id_comprador')
-            ->when($filtros['estado'] ?? null, fn ($query, $estado) => $query->where('t.estado', $estado))
-            ->when($filtros['buscar'] ?? null, function ($query, $buscar) {
-                $query->where(function ($subquery) use ($buscar) {
-                    if (ctype_digit($buscar)) {
-                        $id = (int) $buscar;
-                        $subquery->where('t.id_ticket', $id)
-                            ->orWhere('c.id_compra', $id);
-                    }
-
-                    $subquery->orWhere('t.codigo_validacion', 'like', "%{$buscar}%")
-                        ->orWhere('co.nombre', 'like', "%{$buscar}%")
-                        ->orWhere('co.correo', 'like', "%{$buscar}%");
-                });
-            })
-            ->select([
-                't.id_ticket', 't.id_compra', 't.codigo_validacion', 't.emitido_en',
-                't.estado', 't.utilizado_en', 'c.estado as compra_estado',
-                'c.total as compra_total', 'c.moneda', 'co.nombre as comprador_nombre',
-                'co.correo as comprador_correo',
-            ])
-            ->orderByDesc('t.emitido_en')
-            ->orderByDesc('t.id_ticket')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('admin.tickets.index', compact('tickets', 'filtros'));
+        return view('admin.tickets.index');
     }
 
     public function show(string $ticketId)

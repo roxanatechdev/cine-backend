@@ -23,31 +23,7 @@ class CompraAdminController extends Controller
 
     public function index(Request $request)
     {
-        $filtros = $request->validate([
-            'buscar' => ['nullable', 'string', 'max:150'],
-            'estado' => ['nullable', Rule::in(self::ESTADOS)],
-        ]);
-
-        $compras = Compra::query()
-            ->with('comprador:id_comprador,nombre,correo')
-            ->when($filtros['estado'] ?? null, fn ($query, $estado) => $query->where('estado', $estado))
-            ->when($filtros['buscar'] ?? null, function ($query, $buscar) {
-                $query->where(function ($subquery) use ($buscar) {
-                    if (ctype_digit($buscar)) {
-                        $subquery->where('id_compra', (int) $buscar);
-                    }
-                    $subquery->orWhereHas('comprador', function ($compradorQuery) use ($buscar) {
-                        $compradorQuery->where('nombre', 'like', "%{$buscar}%")
-                            ->orWhere('correo', 'like', "%{$buscar}%");
-                    });
-                });
-            })
-            ->orderByDesc('creada_en')
-            ->orderByDesc('id_compra')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('admin.compras.index', compact('compras', 'filtros'));
+        return view('admin.compras.index');
     }
 
     public function show(string $compraId)

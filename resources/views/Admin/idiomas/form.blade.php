@@ -1,43 +1,99 @@
-@extends('Admin.layout')
+@extends('admin.layout')
 
 @section('title', $modo === 'crear' ? 'Registrar idioma' : 'Editar idioma')
 
 @section('content')
-<div class="mb-4">
-    <a href="{{ route('admin.idiomas.index') }}" class="btn btn-outline-light btn-sm mb-3">← Volver a idiomas</a>
-    <h1 class="admin-page-title">{{ $modo === 'crear' ? 'Registrar idioma' : 'Editar idioma' }}</h1>
-    <p class="muted mb-0">El código identifica el idioma y puede estar vinculado a películas existentes.</p>
+<div class="form-page-header mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h1 class="h2 font-display fw-bold text-cm-primary mb-1 titulo-main">
+                {{ $modo === 'crear' ? 'Registrar idioma' : 'Editar idioma' }}
+            </h1>
+            <p class="text-muted mb-0 small">
+                El código identifica el idioma y puede estar vinculado a películas existentes.
+            </p>
+        </div>
+        <a href="{{ route('admin.idiomas.index') }}" class="btn admin-back-btn d-inline-flex align-items-center gap-2 rounded-3 px-3 py-2 text-decoration-none">
+            <span class="material-symbols-outlined fs-6" aria-hidden="true">arrow_back</span>
+            <span>Volver a idiomas</span>
+        </a>
+    </div>
 </div>
 
-<div class="panel p-4">
+<x-form.errors class="mb-3" />
+
+<x-form.layout
+    title="Información del idioma"
+    subtitle="Define el código, el nombre visible y el estado del idioma en el catálogo.">
     <form method="POST" action="{{ $modo === 'crear' ? route('admin.idiomas.store') : route('admin.idiomas.update', $idioma->codigo) }}">
         @csrf
-        @if ($modo === 'editar') @method('PUT') @endif
-        <div class="row g-3">
-            <div class="col-12 col-md-4">
-                <label for="codigo" class="form-label">Código de idioma (BCP 47)</label>
-                <input id="codigo" name="codigo" value="{{ old('codigo', $idioma->codigo) }}" class="form-control @error('codigo') is-invalid @enderror" maxlength="15" required placeholder="es o pt-BR" autocomplete="off">
-                @error('codigo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                <div class="form-text muted">Ejemplos: es, en, pt-BR.</div>
+        @if ($modo === 'editar')
+        @method('PUT')
+        @endif
+
+        <section class="form-cm__section" aria-label="Datos del idioma">
+            <div class="row g-3">
+                <div class="col-12 col-md-4">
+                    <x-form.field
+                        name="codigo"
+                        label="Código de idioma (BCP 47)"
+                        :required="true"
+                        help="Ejemplos: es, en, pt-BR. Máximo 15 caracteres."
+                        :show-error="false">
+                        <x-form.input
+                            name="codigo"
+                            :value="$idioma->codigo"
+                            placeholder="es o pt-BR"
+                            :maxlength="15"
+                            :required="true"
+                            autocomplete="off"
+                            aria-describedby="codigo-ayuda" />
+                    </x-form.field>
+                </div>
+
+                <div class="col-12 col-md-5">
+                    <x-form.field
+                        name="nombre"
+                        label="Nombre"
+                        :required="true"
+                        help="Máximo 100 caracteres."
+                        :show-error="false">
+                        <x-form.input
+                            name="nombre"
+                            :value="$idioma->nombre"
+                            placeholder="Ej. Español"
+                            :maxlength="100"
+                            :required="true"
+                            autocomplete="off"
+                            aria-describedby="nombre-ayuda" />
+                    </x-form.field>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <div class="form-cm__group">
+                        <label for="activo_toggle" class="form-cm__label">
+                            <span>Estado</span>
+                            <span class="required" aria-hidden="true">*</span>
+                            <span class="visually-hidden">(obligatorio)</span>
+                        </label>
+
+                        <x-form.select
+                            name="activo"
+                            :options="['1' => 'Activo', '0' => 'Inactivo']"
+                            :selected="(string) (int) ($idioma->activo ?? 1)"
+                            placeholder="Seleccionar estado"
+                            help="Desactivar conserva el idioma y las películas que lo referencian." />
+                    </div>
+                </div>
             </div>
-            <div class="col-12 col-md-5">
-                <label for="nombre" class="form-label">Nombre</label>
-                <input id="nombre" name="nombre" value="{{ old('nombre', $idioma->nombre) }}" class="form-control @error('nombre') is-invalid @enderror" maxlength="100" required>
-                @error('nombre')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-            <div class="col-12 col-md-3">
-                <label for="activo" class="form-label">Estado</label>
-                <select id="activo" name="activo" class="form-select @error('activo') is-invalid @enderror" required>
-                    <option value="1" @selected((string) old('activo', $idioma->activo ?? 1) === '1')>Activo</option>
-                    <option value="0" @selected((string) old('activo', $idioma->activo ?? 1) === '0')>Inactivo</option>
-                </select>
-                @error('activo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-            </div>
-        </div>
-        <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+        </section>
+
+        <x-form.actions class="justify-content-end">
             <a href="{{ route('admin.idiomas.index') }}" class="btn btn-outline-light">Cancelar</a>
-            <button type="submit" class="btn btn-primary">{{ $modo === 'crear' ? 'Guardar idioma' : 'Guardar cambios' }}</button>
-        </div>
+            <button type="submit" class="btn btn-primary">
+                {{ $modo === 'crear' ? 'Guardar idioma' : 'Guardar cambios' }}
+            </button>
+        </x-form.actions>
     </form>
-</div>
+</x-form.layout>
 @endsection

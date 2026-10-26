@@ -9,27 +9,9 @@ use Illuminate\Validation\Rule;
 
 class IdiomaAdminController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $buscar = trim((string) $request->query('buscar', ''));
-        $activo = $request->query('activo', '');
-
-        $idiomas = Idioma::query()
-            ->withCount('peliculasOriginales')
-            ->when($buscar !== '', function ($query) use ($buscar) {
-                $query->where(function ($subquery) use ($buscar) {
-                    $subquery->where('codigo', 'like', "%{$buscar}%")
-                        ->orWhere('nombre', 'like', "%{$buscar}%");
-                });
-            })
-            ->when(in_array($activo, ['0', '1'], true), function ($query) use ($activo) {
-                $query->where('activo', (int) $activo);
-            })
-            ->orderBy('nombre')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('admin.idiomas.index', compact('idiomas', 'buscar', 'activo'));
+        return view('admin.idiomas.index');
     }
 
     public function create()

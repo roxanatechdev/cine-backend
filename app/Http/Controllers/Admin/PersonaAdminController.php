@@ -19,30 +19,8 @@ class PersonaAdminController extends Controller
      */
     public function index(Request $request)
     {
-        $filtros = $request->validate([
-            'buscar' => ['nullable', 'string', 'max:150'],
-        ]);
-
-        $personas = Persona::query()
-            ->when(
-                $filtros['buscar'] ?? null,
-                function ($query, $buscar) {
-                    $query->where(function ($subquery) use ($buscar) {
-                        $subquery
-                            ->where('nombre_completo', 'like', "%{$buscar}%")
-                            ->orWhere('nombre_busqueda', 'like', "%{$buscar}%");
-                    });
-                }
-            )
-            ->orderBy('nombre_completo')
-            ->orderBy('id_persona')
-            ->paginate(10)
-            ->withQueryString();
-
-        return view('admin.personas.index', compact(
-            'personas',
-            'filtros'
-        ));
+        // El listado es reactivo; se conservan la ruta y los endpoints CRUD.
+        return view('admin.personas.index');
     }
 
     /**

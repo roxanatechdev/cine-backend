@@ -162,7 +162,7 @@
     margin-bottom: 0.5rem;
 }
 
-.form-cm__label .required{
+.form-cm__label .required {
     color: var(--cm-primary);
 }
 
@@ -259,7 +259,6 @@
     position: relative;
     width: 100%;
 }
-
 
 /* Botón Toggle del Dropdown */
 .form-cm__select-toggle.form-cm__control {
@@ -393,3 +392,157 @@
     color: var(--cm-error, #ffb4ab);
     margin-top: 0.35rem;
 }
+
+/* ======================================================================
+   PATRÓN COMPARTIDO PARA FORMULARIOS ADMINISTRATIVOS
+   ====================================================================== */
+
+.form-page-header {
+    padding-block: 0.25rem;
+}
+
+.form-cm__section--heading {
+    background-color: rgba(255, 255, 255, 0.015);
+}
+
+.form-cm__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+@media (min-width: 768px) {
+    .form-cm__actions {
+        padding: 1.5rem 2rem;
+    }
+}
+
+.form-cm__errors {
+    border-radius: 0.5rem;
+}
+
+/* Mantiene el select nativo accesible, con el mismo lenguaje visual del formulario. */
+.form-cm__control.form-select {
+    padding-right: 2.75rem;
+    color-scheme: dark;
+    background-color: var(--cm-bg-input) !important;
+    border: 0 !important;
+    box-shadow: var(--cm-border-soft) !important;
+}
+
+.form-cm__control.form-select:hover {
+    box-shadow: var(--cm-border-hover) !important;
+}
+
+.form-cm__control.form-select:focus {
+    box-shadow: var(--cm-focus-shadow), var(--cm-border-hover) !important;
+}
+
+.form-cm__control.form-select.is-invalid {
+    box-shadow: 0 0 0 1px #dc3545 !important;
+}
+
+.form-cm__control.form-select option {
+    color: var(--cm-text-main);
+    background-color: var(--cm-surface-high);
+}
+
+
+/* Vista previa de archivos e imágenes en formularios administrativos */
+.form-cm__file-preview {
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.65rem;
+    background: var(--cm-bg-input, #14151a);
+}
+
+.form-cm__file-preview[hidden] {
+    display: none !important;
+}
+
+.form-cm__media-preview {
+    min-height: 90px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--cm-bg-input, #14151a);
+}
+
+.form-cm__media-preview-image {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    margin-inline: auto;
+}
+
+.form-cm__video-frame {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    background: #08090c;
+}
+
+.form-cm__video-frame-embed {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.form-cm__check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+}
+
+.form-cm__check .form-check-input {
+    flex: 0 0 auto;
+    margin-top: 0.2rem;
+}
+
+.form-cm__check .form-check-label {
+    color: var(--cm-text-main, #f8f9fa);
+}
+
+@media (max-width: 575.98px) {
+    .form-cm__media-preview {
+        padding: 0.75rem !important;
+    }
+
+    .form-cm__actions>.d-flex {
+        width: 100%;
+    }
+
+    .form-cm__actions>.d-flex .btn {
+        width: 100%;
+    }
+}
+
+
+.form-cm__control[type="file"] {
+    padding: 0.45rem;
+    overflow: hidden;
+}
+
+.form-cm__control[type="file"]::file-selector-button {
+    margin: -0.05rem 0.75rem -0.05rem -0.05rem;
+    padding: 0.55rem 0.85rem;
+    border: 0;
+    border-radius: 0.35rem;
+    background: var(--cm-surface-high, #282933);
+    color: var(--cm-text-main, #f8f9fa);
+    cursor: pointer;
+}
+
+.form-cm__control[type="file"]::file-selector-button:hover {
+    background: #353744;
+}
+
+/* Vista previa de archivos e imágenes en formularios administrativos */

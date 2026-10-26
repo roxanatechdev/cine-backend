@@ -564,6 +564,8 @@ body {
     border-radius: 0.75rem;
     box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.2),
         inset 0 1px 0 rgba(255, 255, 255, 0.025);
+    width: 100%;
+    min-width: 0;
     overflow: hidden;
 }
 
@@ -608,7 +610,7 @@ body {
     vertical-align: middle;
 }
 
-.admin-table > thead > tr > th {
+.admin-table>thead>tr>th {
     background-color: rgba(12, 14, 23, 0.68);
     color: var(--cm-on-surface-variant, #c2c4d6);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -620,13 +622,13 @@ body {
     white-space: nowrap;
 }
 
-.admin-table > tbody > tr > td {
+.admin-table>tbody>tr>td {
     border-bottom: 1px solid rgba(255, 255, 255, 0.055);
     padding: 0.9rem 1rem;
     font-size: 0.875rem;
 }
 
-.admin-table > tbody > tr:last-child > td {
+.admin-table>tbody>tr:last-child>td {
     border-bottom: 0;
 }
 
@@ -649,8 +651,9 @@ body {
 }
 
 @media (max-width: 575.98px) {
-    .admin-table > thead > tr > th,
-    .admin-table > tbody > tr > td {
+
+    .admin-table>thead>tr>th,
+    .admin-table>tbody>tr>td {
         padding: 0.75rem;
     }
 
@@ -718,7 +721,7 @@ body {
 /* Reorganización específica de la barra y columnas de Compradores. */
 .compradores-toolbar {
     display: grid;
-    grid-template-columns: minmax(12rem, 0.85fr) minmax(20rem, 1.5fr) auto;
+    grid-template-columns: minmax(12rem, 0.85fr) minmax(20rem, 1.5fr) minmax(12rem, 1fr);
     align-items: center;
     gap: 1rem 1.5rem;
 }
@@ -740,13 +743,17 @@ body {
 }
 
 .compradores-toolbar__action {
-    display: flex;
-    justify-content: flex-end;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
     align-items: center;
+    gap: 0.5rem;
 }
 
-.compradores-toolbar__action .btn {
+.compradores-toolbar__action .btn,
+.compradores-toolbar__action .form-cm__select-toggle {
     min-height: 2.65rem;
+    width: 100%;
 }
 
 .admin-table--compradores {
@@ -754,12 +761,29 @@ body {
     table-layout: fixed;
 }
 
-.admin-table--compradores .comprador-col-nombre { width: 19%; }
-.admin-table--compradores .comprador-col-correo { width: 25%; }
-.admin-table--compradores .comprador-col-telefono { width: 13%; }
-.admin-table--compradores .comprador-col-tipo { width: 13%; }
-.admin-table--compradores .comprador-col-creado { width: 14%; }
-.admin-table--compradores .comprador-col-acciones { width: 16%; }
+.admin-table--compradores .comprador-col-nombre {
+    width: 19%;
+}
+
+.admin-table--compradores .comprador-col-correo {
+    width: 25%;
+}
+
+.admin-table--compradores .comprador-col-telefono {
+    width: 13%;
+}
+
+.admin-table--compradores .comprador-col-tipo {
+    width: 13%;
+}
+
+.admin-table--compradores .comprador-col-creado {
+    width: 14%;
+}
+
+.admin-table--compradores .comprador-col-acciones {
+    width: 16%;
+}
 
 .admin-table--compradores .comprador-nombre,
 .admin-table--compradores .comprador-correo,
@@ -875,7 +899,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .admin-action-icon { transition: none; }
+    .admin-action-icon {
+        transition: none;
+    }
 }
 
 /* =========================================
@@ -893,7 +919,7 @@ body {
     max-width: 100%;
 }
 
-.admin-table-footer > * {
+.admin-table-footer>* {
     margin-bottom: 0;
 }
 
@@ -904,7 +930,7 @@ body {
 }
 
 /* Laravel coloca el resumen y los controles dentro del mismo contenedor nav. */
-.admin-table-footer nav > div {
+.admin-table-footer nav>div {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -913,7 +939,7 @@ body {
     width: 100%;
 }
 
-.admin-table-footer nav > div > p {
+.admin-table-footer nav>div>p {
     margin: 0;
 }
 
@@ -980,7 +1006,7 @@ body {
         justify-content: center;
     }
 
-    .admin-table-footer nav > div {
+    .admin-table-footer nav>div {
         justify-content: center;
     }
 
@@ -1001,4 +1027,110 @@ body {
     .admin-table-footer .pagination .page-link {
         transition: none;
     }
+}
+
+.precio-original {
+    text-decoration: line-through;
+    color: #888;
+    margin-right: 8px;
+}
+
+.precio-oferta {
+    color: #e63946;
+    font-weight: bold;
+}
+
+.tachado-grueso {
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+}
+
+.cm-field-filter {
+    background-color: #0c0e17 !important;
+    color: var(--cm-on-surface, #e1e1ef) !important;
+    border: none !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08) !important;
+    border-radius: 0.5rem !important;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease-in-out;
+    min-height: 2.75rem;
+}
+
+.cm-field-filter:hover {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16) !important;
+}
+
+.cm-field-filter:focus {
+    box-shadow: inset 0 0 0 3px rgba(229, 9, 20, 0.4) !important;
+    outline: none !important;
+}
+
+.form-cm__select-toggle.form-cm__filter {
+    background-color: #0c0e17;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--cm-on-surface, #e1e1ef);
+    border-radius: 0.5rem;
+    padding: 0.65rem 0.7rem;
+    font-family: var(--cm-font-body, 'Montserrat', sans-serif);
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    transition: all 0.25s ease;
+}
+
+.cm-dropdown-men-filter {
+    background-color: var(--cm-surface-container-high, #282933) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 0.75rem !important;
+    padding: 0.35rem;
+    margin-top: 0.35rem !important;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1050;
+}
+
+@media (max-width: 600px) {
+    .form-cm__select-toggle.form-cm__filter {
+        font-size: 0.77rem;
+    }
+
+    .form-cm__select-menu.dropdown-menu {
+        padding: 0.5rem 0 !important;
+    }
+}
+
+/* Botón "Volver" unificado para el panel administrativo */
+.admin-back-btn {
+    background-color: var(--cm-surface-container, #1d1f29);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--cm-on-surface, #e1e1ef);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-back-btn:hover {
+    background-color: var(--cm-surface-container-high, #282933);
+    border-color: rgba(230, 227, 228, 0.4);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.admin-back-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Transición fluida para el icono de flecha al hacer hover */
+.admin-back-btn .material-symbols-outlined {
+    transition: transform 0.2s ease;
+}
+
+.admin-back-btn:hover .material-symbols-outlined {
+    transform: translateX(-2px);
+    /* Pequeño desplazamiento interactivo hacia la izquierda */
 }

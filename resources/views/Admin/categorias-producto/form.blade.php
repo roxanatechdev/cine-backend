@@ -1,73 +1,90 @@
-@extends('Admin.layout')
+@extends('admin.layout')
 
 @section('title', $modo === 'crear' ? 'Nueva categoría' : 'Editar categoría')
 
 @section('content')
-<div class="mb-4">
-    <a href="{{ route('admin.categorias-producto.index') }}" class="btn btn-outline-light btn-sm mb-3">
-        ← Volver a categorías
-    </a>
-    <p class="text-uppercase small muted fw-semibold mb-2">Catálogo de confitería</p>
-    <h1 class="admin-page-title">{{ $modo === 'crear' ? 'Nueva categoría' : 'Editar categoría' }}</h1>
-    <p class="muted mb-0">{{ $modo === 'crear' ? 'Completa los datos para registrar una categoría.' : 'Actualiza el nombre o la descripción de la categoría.' }}</p>
+<div class="form-page-header mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <p class="text-uppercase small muted fw-semibold mb-2">Catálogo de confitería</p>
+            <h1 class="h2 font-display fw-bold text-cm-primary mb-1 titulo-main">
+                {{ $modo === 'crear' ? 'Nueva categoría' : 'Editar categoría' }}
+            </h1>
+            <p class="text-muted mb-0 small">
+                {{ $modo === 'crear' ? 'Completa los datos para registrar una categoría.' : 'Actualiza el nombre o la descripción de la categoría.' }}
+            </p>
+        </div>
+        <a href="{{ route('admin.categorias-producto.index') }}" class="btn admin-back-btn d-inline-flex align-items-center gap-2 rounded-3 px-3 py-2 text-decoration-none">
+            <span class="material-symbols-outlined fs-6" aria-hidden="true">arrow_back</span>
+            <span>Volver a categorias</span>
+        </a>
+    </div>
 </div>
 
-@if ($errors->any())
-<div class="alert alert-danger" role="alert">
-    <ul class="mb-0">
-        @foreach ($errors->all() as $error)
-        <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
+<x-form.errors class="mb-3" />
 
-<div class="panel p-3 p-md-4">
+<x-form.layout
+    title="Información de la categoría"
+    subtitle="Define el nombre y la descripción que ayudarán a organizar los productos.">
     <form method="POST" action="{{ $modo === 'crear' ? route('admin.categorias-producto.store') : route('admin.categorias-producto.update', $categoriaProducto) }}">
         @csrf
         @if ($modo === 'editar')
-            @method('PUT')
+        @method('PUT')
         @endif
 
-        <div class="mb-3">
-            <label for="nombre" class="form-label">Nombre de la categoría <span class="text-danger">*</span></label>
-            <input id="nombre" name="nombre" type="text" maxlength="80" required autofocus
-                value="{{ old('nombre', $categoriaProducto->nombre) }}"
-                class="form-control @error('nombre') is-invalid @enderror"
-                placeholder="Ej. Bebidas, snacks, combos...">
-            @error('nombre')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-            <div class="form-text muted">Máximo 80 caracteres. El nombre debe ser único.</div>
-        </div>
+        <section class="form-cm__section" aria-label="Datos de la categoría">
+            <div class="row g-3">
+                <div class="col-12">
+                    <x-form.field
+                        name="nombre"
+                        label="Nombre de la categoría"
+                        :required="true"
+                        help="Máximo 80 caracteres. El nombre debe ser único.">
+                        <x-form.input
+                            name="nombre"
+                            :value="$categoriaProducto->nombre"
+                            placeholder="Ej. Bebidas, snacks, combos..."
+                            :maxlength="80"
+                            :required="true"
+                            autofocus
+                            autocomplete="off"
+                            aria-describedby="nombre-ayuda" />
+                    </x-form.field>
+                </div>
 
-        <div class="mb-4">
-            <label for="descripcion" class="form-label">Descripción <span class="muted fw-normal">(opcional)</span></label>
-            <textarea id="descripcion" name="descripcion" rows="4" maxlength="255"
-                class="form-control @error('descripcion') is-invalid @enderror"
-                placeholder="Describe brevemente los productos que pertenecen a esta categoría.">{{ old('descripcion', $categoriaProducto->descripcion) }}</textarea>
-            @error('descripcion')
-                <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-            <div class="form-text muted">Máximo 255 caracteres.</div>
-        </div>
+                <div class="col-12">
+                    <x-form.field
+                        name="descripcion"
+                        label="Descripción"
+                        help="Campo opcional. Máximo 255 caracteres.">
+                        <x-form.textarea
+                            name="descripcion"
+                            :value="$categoriaProducto->descripcion"
+                            placeholder="Describe brevemente los productos que pertenecen a esta categoría."
+                            :maxlength="255"
+                            :rows="4"
+                            aria-describedby="descripcion-ayuda" />
+                    </x-form.field>
+                </div>
+            </div>
 
-        @if ($modo === 'editar')
-        <div class="alert alert-secondary py-2 small">
-            El estado se administra desde el listado. Este formulario no cambia si la categoría está activa o inactiva.
-        </div>
-        @else
-        <div class="alert alert-secondary py-2 small">
-            La categoría se registrará activa por defecto.
-        </div>
-        @endif
+            @if ($modo === 'editar')
+            <div class="alert alert-secondary py-2 small mt-3 mb-0" role="note">
+                El estado se administra desde el listado. Este formulario no cambia si la categoría está activa o inactiva.
+            </div>
+            @else
+            <div class="alert alert-secondary py-2 small mt-3 mb-0" role="note">
+                La categoría se registrará activa por defecto.
+            </div>
+            @endif
+        </section>
 
-        <div class="d-flex flex-column flex-sm-row gap-2">
+        <x-form.actions class="justify-content-end">
             <a href="{{ route('admin.categorias-producto.index') }}" class="btn btn-outline-light">Cancelar</a>
             <button type="submit" class="btn btn-primary">
                 {{ $modo === 'crear' ? 'Registrar categoría' : 'Guardar cambios' }}
             </button>
-        </div>
+        </x-form.actions>
     </form>
-</div>
+</x-form.layout>
 @endsection

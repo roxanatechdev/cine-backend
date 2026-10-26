@@ -14,20 +14,8 @@ class ProductoAdminController extends Controller
 {
     public function index(Request $request)
     {
-        $filtros = $request->validate([
-            'q' => ['nullable', 'string', 'max:100'],
-            'estado' => ['nullable', Rule::in(['ACTIVO', 'INACTIVO', 'AGOTADO'])],
-            'categoria' => ['nullable', 'integer', 'min:1'],
-        ]);
-
-        $productos = Producto::query()->with('categoria')
-            ->when($filtros['q'] ?? null, fn ($q, $nombre) => $q->where('nombre', 'like', '%' . $nombre . '%'))
-            ->when(($filtros['estado'] ?? '') !== '', fn ($q) => $q->where('estado', $filtros['estado']))
-            ->when(($filtros['categoria'] ?? '') !== '', fn ($q) => $q->where('id_categoria_producto', $filtros['categoria']))
-            ->orderBy('nombre')->paginate(10)->withQueryString();
-
-        $categorias = CategoriaProducto::query()->orderBy('nombre')->get();
-        return view('Admin.productos.index', compact('productos', 'categorias', 'filtros'));
+        // La consulta, los filtros y la paginación del listado ahora pertenecen a Livewire.
+        return view('Admin.productos.index');
     }
 
     public function create()

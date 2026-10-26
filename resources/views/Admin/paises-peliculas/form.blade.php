@@ -1,80 +1,77 @@
-@extends('Admin.layout')
+@extends('admin.layout')
 
 @section('title', 'Asignar país de producción')
 
 @section('content')
-<div class="mb-4">
-    <a href="{{ route('admin.peliculas.paises.index', $pelicula) }}"
-        class="btn btn-outline-light btn-sm mb-3">
-        ← Volver a países
-    </a>
-
-    <h1 class="h3 mb-2">Asignar país de producción</h1>
-
-    <p class="muted mb-0">
-        Película: <strong>{{ $pelicula->titulo }}</strong>
-    </p>
+<div class="form-page-header mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h1 class="h2 font-display fw-bold text-cm-primary mb-1 titulo-main">
+                Asignar país de producción
+            </h1>
+            <p class="text-muted mb-0 small">
+                Selecciona un país para asociarlo a la película sin duplicar sus países de producción.
+            </p>
+            <p class="text-muted mb-0 mt-2">
+                Película: <strong>{{ $pelicula->titulo }}</strong>
+            </p>
+        </div>
+        <a href="{{ route('admin.peliculas.paises.index', $pelicula) }}"
+            class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2 align-self-start align-self-md-auto">
+            <span aria-hidden="true">←</span> Volver a países
+        </a>
+    </div>
 </div>
 
-@if ($errors->any())
-<div class="alert alert-danger" role="alert">
-    <ul class="mb-0">
-        @foreach ($errors->all() as $error)
-        <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
+<x-form.errors class="mb-3" />
 
-<div class="panel rounded-3 p-3 p-md-4">
-    <form method="POST"
-        action="{{ route('admin.peliculas.paises.store', $pelicula) }}">
+@php
+    $opcionesPaises = $paises->mapWithKeys(
+        fn ($pais) => [$pais->codigo => $pais->nombre . ' (' . $pais->codigo . ')']
+    )->all();
+@endphp
+
+<x-form.layout
+    title="País de producción"
+    subtitle="Elige un país del catálogo para asociarlo a esta película.">
+    <form method="POST" action="{{ route('admin.peliculas.paises.store', $pelicula) }}">
         @csrf
 
-        <div class="mb-4">
-            <label for="codigo_pais" class="form-label">
-                País <span class="text-danger">*</span>
-            </label>
+        <section class="form-cm__section" aria-label="Selección del país">
+            <div class="row g-3">
+                <div class="col-12">
+                    <x-form.field
+                        name="codigo_pais"
+                        id="codigo_pais_toggle"
+                        label="País"
+                        :required="true"
+                        :showError="false">
+                        <x-form.select
+                            name="codigo_pais"
+                            :options="$opcionesPaises"
+                            :selected="old('codigo_pais', '')"
+                            placeholder="Selecciona un país"
+                            help="El país debe existir en el catálogo y no estar asignado previamente a esta película."
+                            :disabled="$paises->isEmpty()" />
+                    </x-form.field>
 
-            <select id="codigo_pais"
-                name="codigo_pais"
-                class="form-select @error('codigo_pais') is-invalid @enderror"
-                required>
-                <option value="">Selecciona un país</option>
-
-                @foreach ($paises as $pais)
-                <option value="{{ $pais->codigo }}"
-                    @selected(
-                    (string) old('codigo_pais', '' )===(string) $pais->codigo
-                    )>
-                    {{ $pais->nombre }} ({{ $pais->codigo }})
-                </option>
-                @endforeach
-            </select>
-
-            @error('codigo_pais')
-            <div class="invalid-feedback">{{ $message }}</div>
-            @enderror
-
-            @if ($paises->isEmpty())
-            <div class="form-text muted">
-                No hay países disponibles para asignar.
+                    @if ($paises->isEmpty())
+                        <p class="form-cm__text mt-2 mb-0" role="status">
+                            No hay países disponibles para asignar. Registra primero un país en el catálogo.
+                        </p>
+                    @endif
+                </div>
             </div>
-            @endif
-        </div>
+        </section>
 
-        <div class="d-flex flex-column flex-sm-row gap-2">
-            <a href="{{ route('admin.peliculas.paises.index', $pelicula) }}"
-                class="btn btn-outline-light">
+        <x-form.actions class="justify-content-end">
+            <a href="{{ route('admin.peliculas.paises.index', $pelicula) }}" class="btn btn-outline-light">
                 Cancelar
             </a>
-
-            <button type="submit"
-                class="btn btn-primary"
-                @disabled($paises->isEmpty())>
+            <button type="submit" class="btn btn-primary" @disabled($paises->isEmpty())>
                 Asignar país
             </button>
-        </div>
+        </x-form.actions>
     </form>
-</div>
+</x-form.layout>
 @endsection

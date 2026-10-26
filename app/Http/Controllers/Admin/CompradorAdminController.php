@@ -18,24 +18,7 @@ class CompradorAdminController extends Controller
 
     public function index(Request $request)
     {
-        $filtros = $request->validate([
-            'buscar' => ['nullable', 'string', 'max:150'],
-        ]);
-
-        $compradores = Comprador::query()
-            ->when($filtros['buscar'] ?? null, function ($query, $buscar) {
-                $query->where(function ($subquery) use ($buscar) {
-                    $subquery->where('nombre', 'like', "%{$buscar}%")
-                        ->orWhere('correo', 'like', "%{$buscar}%")
-                        ->orWhere('telefono', 'like', "%{$buscar}%");
-                });
-            })
-            ->orderBy('nombre')
-            ->orderBy('id_comprador')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('admin.compradores.index', compact('compradores', 'filtros'));
+        return view('admin.compradores.index');
     }
 
     public function create()

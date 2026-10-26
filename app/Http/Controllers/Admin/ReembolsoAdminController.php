@@ -14,42 +14,7 @@ class ReembolsoAdminController extends Controller
 
     public function index(Request $request)
     {
-        $filtros = $request->validate([
-            'buscar' => ['nullable', 'string', 'max:150'],
-            'estado' => ['nullable', Rule::in(self::ESTADOS)],
-        ]);
-
-        $reembolsos = DB::table('reembolso as r')
-            ->join('pago as p', 'p.id_pago', '=', 'r.id_pago')
-            ->join('compra as c', 'c.id_compra', '=', 'p.id_compra')
-            ->join('comprador as co', 'co.id_comprador', '=', 'c.id_comprador')
-            ->when($filtros['estado'] ?? null, fn ($query, $estado) => $query->where('r.estado', $estado))
-            ->when($filtros['buscar'] ?? null, function ($query, $buscar) {
-                $query->where(function ($subquery) use ($buscar) {
-                    if (ctype_digit($buscar)) {
-                        $id = (int) $buscar;
-                        $subquery->where('r.id_reembolso', $id)
-                            ->orWhere('p.id_pago', $id)
-                            ->orWhere('c.id_compra', $id);
-                    }
-
-                    $subquery->orWhere('co.nombre', 'like', "%{$buscar}%")
-                        ->orWhere('co.correo', 'like', "%{$buscar}%")
-                        ->orWhere('r.referencia_externa', 'like', "%{$buscar}%");
-                });
-            })
-            ->select([
-                'r.id_reembolso', 'r.id_pago', 'r.importe', 'r.motivo', 'r.estado',
-                'r.solicitado_en', 'r.completado_en', 'r.referencia_externa',
-                'p.id_compra', 'p.estado as pago_estado', 'p.importe as pago_importe',
-                'c.moneda', 'co.nombre as comprador_nombre', 'co.correo as comprador_correo',
-            ])
-            ->orderByDesc('r.solicitado_en')
-            ->orderByDesc('r.id_reembolso')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('admin.reembolsos.index', compact('reembolsos', 'filtros'));
+        return view('admin.reembolsos.index');
     }
 
     public function create(string $pagoId)

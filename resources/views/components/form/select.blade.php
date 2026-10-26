@@ -24,6 +24,7 @@ $errorId = $id . '-error';
         id="{{ $id }}"
         name="{{ $name }}"
         value="{{ $selected }}"
+        {{ $attributes }}
         @if ($disabled) disabled @endif>
 
     <button

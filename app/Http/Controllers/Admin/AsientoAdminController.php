@@ -18,16 +18,9 @@ class AsientoAdminController extends Controller
         'ACCESIBLE',
     ];
 
-    public function index()
+    public function index(Request $request)
     {
-        $asientos = Asiento::query()
-            ->with('sala')
-            ->orderBy('id_sala')
-            ->orderBy('fila')
-            ->orderBy('numero')
-            ->paginate(20);
-
-        return view('admin.asientos.index', compact('asientos'));
+        return view('admin.asientos.index');
     }
 
     public function create()

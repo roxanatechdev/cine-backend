@@ -9,23 +9,9 @@ use Illuminate\Validation\Rule;
 
 class PaisAdminController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $buscar = trim((string) $request->query('buscar', ''));
-
-        $paises = Pais::query()
-            ->withCount('peliculas')
-            ->when($buscar !== '', function ($query) use ($buscar) {
-                $query->where(function ($subquery) use ($buscar) {
-                    $subquery->where('codigo', 'like', "%{$buscar}%")
-                        ->orWhere('nombre', 'like', "%{$buscar}%");
-                });
-            })
-            ->orderBy('nombre')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('admin.paises.index', compact('paises', 'buscar'));
+        return view('admin.paises.index');
     }
 
     public function create()

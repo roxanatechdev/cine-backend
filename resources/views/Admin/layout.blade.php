@@ -286,6 +286,10 @@
                             <i class="bi bi-globe nav-icon"></i>
                             <span>Países</span>
                         </a>
+                        <a class="admin-nav-item {{ request()->routeIs('admin.personas.*') ? 'active' : '' }}" href="{{ route('admin.personas.index') }}" data-tooltip="Personas">
+                            <i class="bi bi-people-fill nav-icon"></i>
+                            <span>Personas</span>
+                        </a>
 
                         <!-- SECCIÓN: CONCESIONES -->
                         <div class="admin-nav-section-label mt-3">CONCESIONES</div>
@@ -450,38 +454,30 @@
         });
     </script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.form-cm__dropdown').forEach(dropdown => {
-                const hiddenInput = dropdown.querySelector('input[type="hidden"]');
-                const toggleButton = dropdown.querySelector('[data-bs-toggle="dropdown"]');
-                const labelSpan = dropdown.querySelector('[data-dropdown-label]');
-
-                dropdown.querySelectorAll('[data-dropdown-option]').forEach(option => {
-                    option.addEventListener('click', function() {
-                        const value = this.getAttribute('data-value');
-                        const text = this.textContent.trim();
-
-                        // 1. Actualizar el input oculto que se envía al servidor
-                        hiddenInput.value = value;
-
-                        // 2. Actualizar el texto visible del botón
-                        if (labelSpan) {
-                            labelSpan.textContent = text;
-                        }
-
-                        // 3. Gestionar clases activas en la lista
-                        dropdown.querySelectorAll('[data-dropdown-option]').forEach(opt => {
-                            opt.classList.remove('active');
-                            opt.removeAttribute('aria-current');
-                        });
-                        this.classList.add('active');
-                        this.setAttribute('aria-current', 'true');
-                    });
-                });
+        document.addEventListener('click', function(event) {
+            const option = event.target.closest('[data-dropdown-option]');
+            if (!option) return;
+            const dropdown = option.closest('.form-cm__dropdown');
+            if (!dropdown) return;
+            const input = dropdown.querySelector('input[type="hidden"]');
+            const label = dropdown.querySelector('[data-dropdown-label]');
+            if (!input || !label) return;
+            input.value = option.dataset.value ?? '';
+            label.textContent = option.textContent.trim();
+            dropdown.querySelectorAll('[data-dropdown-option]').forEach((item) => {
+                const active = item === option;
+                item.classList.toggle('active', active);
+                if (active) item.setAttribute('aria-current', 'true');
+                else item.removeAttribute('aria-current');
             });
+            input.dispatchEvent(new Event('input', {
+                bubbles: true
+            }));
+            input.dispatchEvent(new Event('change', {
+                bubbles: true
+            }));
         });
     </script>
-
     @stack('scripts')
     @livewireScripts
 </body>

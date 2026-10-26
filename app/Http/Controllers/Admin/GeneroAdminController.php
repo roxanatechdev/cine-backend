@@ -9,33 +9,9 @@ use Illuminate\Validation\Rule;
 
 class GeneroAdminController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $buscar = trim((string) $request->query('buscar', ''));
-        $activo = $request->query('activo', '');
-
-        $generos = Genero::query()
-            ->withCount('peliculas')
-            ->when($buscar !== '', function ($query) use ($buscar) {
-                $query->where(function ($subquery) use ($buscar) {
-                    if (ctype_digit($buscar)) {
-                        $subquery->where('id_genero', (int) $buscar)
-                            ->orWhere('nombre', 'like', "%{$buscar}%")
-                            ->orWhere('descripcion', 'like', "%{$buscar}%");
-                    } else {
-                        $subquery->where('nombre', 'like', "%{$buscar}%")
-                            ->orWhere('descripcion', 'like', "%{$buscar}%");
-                    }
-                });
-            })
-            ->when(in_array($activo, ['0', '1'], true), function ($query) use ($activo) {
-                $query->where('activo', (int) $activo);
-            })
-            ->orderBy('nombre')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('admin.generos.index', compact('generos', 'buscar', 'activo'));
+        return view('admin.generos.index');
     }
 
     public function create()
