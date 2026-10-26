@@ -32,6 +32,7 @@ Route::get('/', function () {
 Route::get('/api/peliculas', [PeliculaController::class, 'index']);
 Route::get('/api/peliculas/cartelera', [PeliculaPublicaController::class, 'cartelera']);
 Route::get('/api/peliculas/proximamente', [PeliculaPublicaController::class, 'proximamente']);
+Route::get('/api/peliculas/destacadas', [PeliculaPublicaController::class, 'destacadas']);
 
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
