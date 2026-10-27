@@ -155,6 +155,9 @@ Route::middleware(['auth', 'admin'])
                 'update',
                 'destroy',
             ]);
+        Route::get('salas/{sala}/distribucion', [SalaAdminController::class, 'distribucion'])
+            ->whereNumber('sala')
+            ->name('salas.distribucion');
         Route::resource('asientos', AsientoAdminController::class)
             ->only([
                 'index',

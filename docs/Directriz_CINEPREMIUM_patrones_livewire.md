@@ -199,3 +199,23 @@ En la versión del proyecto inspeccionada, Personas todavía usa una tabla Blade
 No copiar automáticamente el selector de Productos ni el interruptor de Categorías: el listado actual no muestra un campo de estado editable. El patrón de imágenes sí podría adaptarse a la foto de persona, conservando el tratamiento de URL local/externa. Antes de implementar, decidir si se quiere mantener Personas con búsqueda GET tradicional o migrar el listado a Livewire; esa decisión afecta filtros, ordenamiento, paginación y alcance del cambio.
 
 **Estado del módulo Personas:** inspección inicial completada; todavía no se modificaron sus archivos.
+
+## 9. Editor visual de distribución de salas — iteración 2
+
+- La cuadrícula visual de asientos se mantiene como interfaz principal; no rediseñar su apariencia durante cambios funcionales.
+- Las celdas vacías permiten crear asientos y las celdas ocupadas seleccionar un asiento para editarlo.
+- Los asientos con registros en `funcion_asiento` conservan su identidad histórica: no se permite cambiar fila, número o tipo ni eliminarlos. Solo se permite cambiar `activo`.
+- Los asientos sin historial pueden cambiar de fila, número y tipo, y pueden eliminarse con confirmación desde la interfaz.
+- La protección se comprueba en el componente del servidor dentro de transacciones; ocultar o deshabilitar controles en Blade no sustituye las comprobaciones del servidor.
+- La combinación sala/fila/número debe permanecer única; al mover un asiento, validar duplicados e ignorar su propio `id_asiento`.
+- Pruebas automatizadas previstas en `tests/Feature/admin/EditorDistribucionSalaTest.php`: creación, edición de disponibilidad, protección de tipo/ubicación, movimiento y eliminación con y sin historial.
+- No declarar la iteración verificada hasta ejecutar esas pruebas en un entorno con dependencias instaladas y revisar manualmente la interacción del plano.
+
+## Editor visual de distribución de salas — Iteración 3
+
+- La creación masiva se limita a una fila y a un rango de hasta 100 posiciones por operación.
+- Antes de crear, el administrador debe generar una vista previa que detalle las posiciones existentes y las faltantes.
+- La confirmación solo crea posiciones faltantes; los asientos existentes conservan tipo, disponibilidad e identidad.
+- El servidor valida fila, rango, tipo y disponibilidad. No confiar en el estado de vista previa enviado por el cliente; al confirmar, recalcular las posiciones existentes dentro de la transacción.
+- La inserción usa protección frente a duplicados. Mantener la restricción única de sala/fila/número como última defensa.
+- Probar rango invertido, rango excesivo, fila con posiciones ya existentes y conservación de los datos preexistentes.

@@ -55,6 +55,13 @@ class SalaAdminController extends Controller
         ]);
     }
 
+    public function distribucion(string $sala)
+    {
+        $sala = Sala::query()->findOrFail($sala);
+
+        return view('admin.salas.distribucion', compact('sala'));
+    }
+
     public function update(Request $request, string $sala)
     {
         $sala = Sala::query()->findOrFail($sala);

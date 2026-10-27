@@ -21,6 +21,26 @@
     $opcionesActivo = ['1' => 'Activo', '0' => 'Inactivo'];
 @endphp
 
+@if ($modo === 'editar' && $asientoProtegido)
+    <div class="alert alert-warning" role="status">
+        <h2 class="h6 mb-2">Asiento protegido por historial de funciones</h2>
+        <p class="mb-2">Este asiento está asociado a funciones registradas. No puedes cambiar su sala, fila, número ni tipo, porque eso alteraría su identidad histórica. La disponibilidad puede modificarse según las reglas actuales.</p>
+        <p class="mb-2"><strong>Funciones asociadas:</strong> {{ $funcionesAsociadas->count() }}</p>
+        <ul class="mb-0 ps-3">
+            @foreach ($funcionesAsociadas as $funcionAsociada)
+                <li class="mb-2">
+                    <strong>{{ $funcionAsociada->pelicula_titulo }}</strong>
+                    — {{ \Illuminate\Support\Carbon::parse($funcionAsociada->inicio)->format('d/m/Y H:i') }}
+                    — {{ $funcionAsociada->formato }}
+                    — Estado: {{ $funcionAsociada->estado }}
+                    — Precio del asiento: ${{ number_format((float) $funcionAsociada->precio_asiento, 2, ',', '.') }}
+                    — Entradas vinculadas: {{ $funcionAsociada->cantidad_entradas }}
+                </li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <x-form.layout title="Información del asiento" subtitle="Define la sala y la ubicación del asiento.">
     <form method="POST" action="{{ $modo === 'crear' ? route('admin.asientos.store') : route('admin.asientos.update', $asiento->id_asiento) }}">
         @csrf

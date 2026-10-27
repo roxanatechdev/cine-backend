@@ -107,6 +107,9 @@
                             <a href="{{ route('admin.salas.edit', $sala->id_sala) }}" class="btn admin-action-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Editar" aria-label="Editar sala {{ $sala->nombre }}">
                                 <span class="material-symbols-outlined" aria-hidden="true">edit</span>
                             </a>
+                            <a href="{{ route('admin.salas.distribucion', $sala->id_sala) }}" class="btn admin-action-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Distribución visual" aria-label="Editar distribución de asientos de {{ $sala->nombre }}">
+                                <span class="material-symbols-outlined" aria-hidden="true">event_seat</span>
+                            </a>
                             <form method="POST" action="{{ route('admin.salas.destroy', $sala->id_sala) }}" class="d-inline" onsubmit="return confirm('¿Eliminar esta sala? Si tiene asientos o funciones asociados, no podrá eliminarse.');">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn admin-action-icon admin-action-icon--danger" data-bs-toggle="tooltip" data-bs-placement="top" title="Eliminar" aria-label="Eliminar sala {{ $sala->nombre }}">

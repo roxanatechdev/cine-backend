@@ -98,6 +98,19 @@ El nombre de la propiedad y la etiqueta deben adaptarse a cada módulo. Verifica
 
 No modificar componentes compartidos sin revisar qué otros módulos los utilizan. Si se cambia su API o comportamiento, probar también los módulos afectados.
 
+### Estándar obligatorio de componentes compartidos para tablas Livewire
+
+Para todo listado administrativo migrado a Livewire, verificar la API real de los componentes y reutilizar los siguientes cuando sean compatibles:
+
+- `x-admin.encabezado-pagina` en la vista contenedora.
+- `x-admin.tabla.contenedor` para la tarjeta o marco de la tabla.
+- `x-admin.tabla.filtros` para envolver la zona de filtros cuando encaje con la estructura.
+- `x-form.select` para los filtros desplegables y el tamaño de página. Como es un dropdown personalizado con un `input` oculto, en tablas Livewire debe mantenerse el listener `data-dropdown-option` que actualiza la etiqueta y despacha los eventos `input` y `change`. No sustituirlo por un `<select>` nativo solo por conveniencia.
+- `x-admin.tabla.vacio` cuando su estructura de fila sea la adecuada; si el estado vacío es un bloque independiente, usar la clase compartida `admin-table-empty`.
+- **`x-admin.tabla.pie` como pie estándar de las tablas Livewire**, pasando el paginador computado y la etiqueta del conjunto, por ejemplo: `<x-admin.tabla.pie :paginator="$this->registros" label="registros" class="admin-table-footer p-3" />`. Este componente ya incluye el resumen del rango y la navegación Livewire; no duplicar el resumen ni agregar otra paginación debajo.
+
+Conservar el mecanismo de navegación del paginador que corresponda. No cambiar componentes compartidos globales para resolver una particularidad de un solo módulo. Documentar excepciones justificadas.
+
 ### Fase F — Verificación
 
 Lista mínima de comprobación:
@@ -176,6 +189,15 @@ Patrones establecidos durante el trabajo reciente:
 - La implementación real debe revisarse en el proyecto actual antes de asumir que los archivos o patrones de una versión previa siguen vigentes.
 
 Esta sección es una referencia de trabajo y debe actualizarse si el proyecto cambia.
+
+### Módulo Pagos — decisiones específicas de la tabla
+
+- La tabla es de consulta; los estados e importes se administran desde el flujo transaccional de cobro. No agregar acciones de edición ni cambio de estado desde el listado.
+- Búsqueda: ID de pago, ID de compra, nombre/correo del comprador y referencia externa.
+- Filtros combinables: estado (`PENDIENTE`, `APROBADO`, `RECHAZADO`), método (`QR`, `TARJETA`) y rango de fecha de creación.
+- Orden inicial: fecha de creación descendente y desempate por ID de pago descendente. La lista blanca de columnas ordenables debe corresponder a columnas reales de `pago` y relaciones confirmadas.
+- Usar `x-form.select` para estado, método y tamaño de página; `x-admin.tabla.pie` para resumen y navegación; mantener la acción de ver detalle y el enlace a la compra.
+- Conservar `admin.pagos.show`, la vista de detalle, el acceso a administración de reembolsos y las reglas del flujo de cobro.
 
 ## 6. Plantilla breve para iniciar un nuevo módulo
 
@@ -289,3 +311,16 @@ El módulo `Categorías de producto` sigue el patrón aprobado de catálogos, co
 - El módulo `Productos` se mantiene separado porque su manejo de imágenes y campos comerciales requiere diagnóstico e implementación propios.
 
 **Estado:** implementación preparada para que el usuario la pruebe. La sintaxis PHP se revisó; las pruebas de integración Laravel y la validación visual en navegador deben registrarse como pendientes si no se ejecutan en un entorno con dependencias y base de datos configuradas.
+
+
+## 8. Editor visual de distribución de salas
+
+**Implementación inicial:** `App\Livewire\Admin\Salas\EditorDistribucionSala` y `resources/views/livewire/admin/salas/editor-distribucion-sala.blade.php`, montado en `admin.salas.distribucion`.
+
+- El plano representa la ubicación física guardada en `asiento` (fila y número); no introduce una segunda fuente de verdad ni requiere migraciones.
+- Las celdas vacías permiten crear asientos; las celdas ocupadas permiten seleccionar y actualizar tipo/disponibilidad desde el editor.
+- Antes de cambiar el tipo, el servidor vuelve a consultar `funcion_asiento` dentro de una transacción y bloquea el asiento. Si hay historial, conserva el tipo y permite cambiar solo `activo`.
+- La fila y el número de un asiento existente se muestran como no editables en el plano. Para ajustes estructurales de asientos sin referencias se conserva la ficha CRUD existente.
+- El plano muestra hasta 30 columnas por legibilidad; los números superiores siguen almacenados y se advierten en la interfaz.
+- No se eliminan asientos desde el plano. La eliminación continúa bajo las protecciones del CRUD existente.
+- La prueba automatizada del editor debe cubrir renderizado de la página, alta desde celda vacía y protección del tipo frente al historial. La validación funcional completa requiere ejecutar PHPUnit en el entorno del proyecto con sus dependencias instaladas.
