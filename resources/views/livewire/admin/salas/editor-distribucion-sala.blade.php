@@ -1,616 +1,381 @@
-<div
-    class="dist-editor-shell"
-    x-data="{
-        zoomLevel: 100,
-        minZoom: 50,
-        maxZoom: 150,
-        panMode: false,
-        activeTool: 'select',
-        brushType: 'ESTANDAR',
-        brushAvailability: '1',
-        toolMessage: 'Herramienta Seleccionar activa. Elige un asiento para ver o editar sus detalles.',
-        activateTool(tool) {
-            this.activeTool = tool;
-            this.panMode = tool === 'pan';
-            this.panPointerId = null;
-            this.panMoved = false;
-            const messages = {
-                select: 'Herramienta Seleccionar activa. Toca un asiento para editarlo.',
-                'brush-type': 'Pincel de tipo activo: ' + ({ESTANDAR: 'Estándar', PREFERENCIAL: 'Preferencial', ACCESIBLE: 'Accesible'}[this.brushType] || this.brushType) + '. Toca los asientos que quieras pintar.',
-                'brush-availability': 'Pincel de disponibilidad activo: ' + (this.brushAvailability === '1' ? 'Activo' : 'Inactivo') + '. Toca los asientos que quieras pintar.',
-                pan: 'Mover pizarra activo. Arrastra para desplazarte; elige otra herramienta para editar asientos.'
-            };
-            this.toolMessage = messages[tool] || messages.select;
-        },
-        chooseTypeBrush(type) { this.brushType = type; this.activateTool('brush-type'); },
-        chooseAvailabilityBrush(value) { this.brushAvailability = value; this.activateTool('brush-availability'); },
-        async handleCellClick(fila, numero, id, protectedSeat = false) {
-            if (this.panMode || this.pinchGesture || this.pinchMoved) return;
-            if (this.activeTool === 'brush-type') {
-                if (protectedSeat) { this.toolMessage = 'Asiento protegido por historial: su tipo no se puede cambiar. Puedes usar el pincel de disponibilidad.'; return; }
-                if (!id) { this.toolMessage = 'El pincel solo pinta asientos existentes. Usa Seleccionar para crear uno en una celda vacía.'; return; }
-                try { await this.$wire.pintarAsiento(Number(id), 'tipo', this.brushType); this.toolMessage = 'Pincel aplicado: ' + this.brushType.toLowerCase() + '. Puedes seguir pintando.'; }
-                catch (error) { this.toolMessage = 'No se pudo pintar este asiento. Revisa el mensaje de validación.'; }
-                return;
-            }
-            if (this.activeTool === 'brush-availability') {
-                if (!id) { this.toolMessage = 'El pincel solo pinta asientos existentes. Usa Seleccionar para crear uno en una celda vacía.'; return; }
-                try { await this.$wire.pintarAsiento(Number(id), 'activo', this.brushAvailability); this.toolMessage = 'Disponibilidad aplicada: ' + (this.brushAvailability === '1' ? 'activo' : 'inactivo') + '. Puedes seguir pintando.'; }
-                catch (error) { this.toolMessage = 'No se pudo pintar este asiento. Revisa el mensaje de validación.'; }
-                return;
-            }
-            if (this.activeTool !== 'select') return;
-            if (this.$wire.modoSeleccionMultiple && id) { this.toggleSeat(Number(id)); return; }
-            await this.$wire.seleccionarCelda(fila, Number(numero));
-        },
-        panPointerId: null,
-        panStartX: 0,
-        panStartY: 0,
-        panScrollLeft: 0,
-        panScrollTop: 0,
-        panMoved: false,
-        activePointers: {},
-        pinchStartDistance: 0,
-        pinchStartZoom: 100,
-        pinchCenterX: 0,
-        pinchCenterY: 0,
-        pinchGesture: false,
-        pinchMoved: false,
-        changeZoom(delta) { this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel + delta)); },
-        resetZoom() { this.zoomLevel = 100; },
-        togglePanMode() {
-            this.panMode = !this.panMode;
-            this.panPointerId = null;
-            this.panMoved = false;
-        },
-        startPan(event) {
-            if (!this.$refs.boardViewport) return;
-            this.activePointers[event.pointerId] = { x: event.clientX, y: event.clientY };
-            const pointers = Object.values(this.activePointers);
-            if (pointers.length === 2) {
-                const dx = pointers[1].x - pointers[0].x;
-                const dy = pointers[1].y - pointers[0].y;
-                this.pinchStartDistance = Math.max(1, Math.hypot(dx, dy));
-                this.pinchStartZoom = this.zoomLevel;
-                const rect = this.$refs.boardViewport.getBoundingClientRect();
-                this.pinchCenterX = ((pointers[0].x + pointers[1].x) / 2) - rect.left;
-                this.pinchCenterY = ((pointers[0].y + pointers[1].y) / 2) - rect.top;
-                this.pinchGesture = true;
-                this.pinchMoved = false;
-                this.panPointerId = null;
-                return;
-            }
-            if (!this.panMode || event.button !== 0) return;
-            const viewport = this.$refs.boardViewport;
-            this.panPointerId = event.pointerId;
-            this.panStartX = event.clientX;
-            this.panStartY = event.clientY;
-            this.panScrollLeft = viewport.scrollLeft;
-            this.panScrollTop = viewport.scrollTop;
-            this.panMoved = false;
-            if (viewport.setPointerCapture) viewport.setPointerCapture(event.pointerId);
-        },
-        movePan(event) {
-            if (!this.$refs.boardViewport) return;
-            if (this.activePointers[event.pointerId]) {
-                this.activePointers[event.pointerId] = { x: event.clientX, y: event.clientY };
-                const pointers = Object.values(this.activePointers);
-                if (pointers.length >= 2 && this.pinchGesture) {
-                    const dx = pointers[1].x - pointers[0].x;
-                    const dy = pointers[1].y - pointers[0].y;
-                    const distance = Math.max(1, Math.hypot(dx, dy));
-                    const nextZoom = Math.max(this.minZoom, Math.min(this.maxZoom, Math.round(this.pinchStartZoom * distance / this.pinchStartDistance)));
-                    const viewport = this.$refs.boardViewport;
-                    const oldScale = this.zoomLevel / 100;
-                    const focalX = (viewport.scrollLeft + this.pinchCenterX) / oldScale;
-                    const focalY = (viewport.scrollTop + this.pinchCenterY) / oldScale;
-                    this.zoomLevel = nextZoom;
-                    const newScale = nextZoom / 100;
-                    this.$nextTick(() => {
-                        viewport.scrollLeft = Math.max(0, focalX * newScale - this.pinchCenterX);
-                        viewport.scrollTop = Math.max(0, focalY * newScale - this.pinchCenterY);
-                    });
-                    if (Math.abs(nextZoom - this.pinchStartZoom) >= 1) this.pinchMoved = true;
-                    event.preventDefault();
-                    return;
-                }
-            }
-            if (!this.panMode || this.panPointerId !== event.pointerId) return;
-            const dx = event.clientX - this.panStartX;
-            const dy = event.clientY - this.panStartY;
-            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) this.panMoved = true;
-            this.$refs.boardViewport.scrollLeft = this.panScrollLeft - dx;
-            this.$refs.boardViewport.scrollTop = this.panScrollTop - dy;
-            if (this.panMoved) event.preventDefault();
-        },
-        endPan(event) {
-            delete this.activePointers[event.pointerId];
-            if (this.panPointerId === event.pointerId) {
-                this.panPointerId = null;
-                if (this.panMoved) setTimeout(() => { this.panMoved = false; }, 0);
-            }
-            if (Object.keys(this.activePointers).length < 2 && this.pinchGesture) {
-                setTimeout(() => {
-                    this.pinchGesture = false;
-                    this.pinchMoved = false;
-                }, 0);
-            }
-            if (this.$refs.boardViewport?.hasPointerCapture?.(event.pointerId)) this.$refs.boardViewport.releasePointerCapture(event.pointerId);
-        },
-        blockPanClick(event) {
-            if (!this.panMode && !this.pinchGesture && !this.pinchMoved) return;
-            event.preventDefault();
-            event.stopPropagation();
-        },
-        fitBoard() {
-            const wrap = this.$refs.boardViewport;
-            const table = this.$refs.boardTable;
-            if (!wrap || !table) return;
-            const currentScale = this.zoomLevel / 100;
-            const naturalWidth = table.getBoundingClientRect().width / currentScale;
-            const availableWidth = Math.max(1, wrap.clientWidth - 24);
-            this.zoomLevel = Math.max(this.minZoom, Math.min(100, Math.floor((availableWidth / naturalWidth) * 100)));
-        },
-        selectedSeatIds: @js(array_fill_keys(array_map('intval', $asientosSeleccionados), true)),
-        isSelected(id) {
-            return this.selectedSeatIds[Number(id)] === true;
-        },
-        selectedIds() {
-            return Object.keys(this.selectedSeatIds).filter(id => this.selectedSeatIds[id] === true).map(Number);
-        },
-        toggleSeat(id, element = null) {
-            id = Number(id);
-            const startedAt = performance.now();
-            const wasSelected = this.isSelected(id);
-            console.debug('[CINEPREMIUM selección] Clic recibido', {
-                asientoId: id,
-                accion: wasSelected ? 'deseleccionar' : 'seleccionar',
-                seleccionAntes: Object.keys(this.selectedSeatIds).length,
-                hora: new Date().toISOString()
-            });
-
-            if (wasSelected) delete this.selectedSeatIds[id];
-            else this.selectedSeatIds[id] = true;
-
-            console.debug('[CINEPREMIUM selección] Estado local actualizado', {
-                asientoId: id,
-                seleccionado: this.isSelected(id),
-                totalSeleccionados: Object.keys(this.selectedSeatIds).length,
-                tiempoEstadoMs: Number((performance.now() - startedAt).toFixed(2))
-            });
-
-            this.$nextTick(() => requestAnimationFrame(() => {
-                console.debug('[CINEPREMIUM selección] Comprobación visual', {
-                    asientoId: id,
-                    claseBordeRojoPresente: element?.classList.contains('dist-asiento--seleccionado') ?? false,
-                    seleccionadoEnAlpine: this.isSelected(id),
-                    totalSeleccionados: Object.keys(this.selectedSeatIds).length,
-                    tiempoHastaComprobacionMs: Number((performance.now() - startedAt).toFixed(2))
-                });
-            }));
-        },
-        async syncSelectionAndCall(action) {
-            this.$wire.set('asientosSeleccionados', this.selectedIds(), true);
-            await this.$wire.call(action);
-        }
-    }"
-    x-init="$watch('$wire.modoSeleccionMultiple', value => { if (!value) selectedSeatIds = {}; })"
->
-    @php
-        $distribucion = $this->asientos;
-        $seleccion = null;
-        if ($asientoSeleccionadoId !== null) {
-            foreach ($distribucion['asientos'] as $asientosFila) {
-                foreach ($asientosFila as $asientoCelda) {
-                    if ($asientoCelda['id'] === $asientoSeleccionadoId) { $seleccion = $asientoCelda; break 2; }
-                }
-            }
-        }
-        $tipoOptions = ['ESTANDAR' => 'Estándar', 'PREFERENCIAL' => 'Preferencial', 'ACCESIBLE' => 'Accesible'];
-        $activoOptions = ['1' => 'Activo', '0' => 'Inactivo'];
-    @endphp
-
-    <div class="panel rounded-3 p-3 mb-3 dist-save-panel" aria-label="Guardar o cancelar distribución">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <div>
-                <div class="fw-semibold" role="status" aria-live="polite" aria-atomic="true">{{ $hayCambiosPendientes ? 'Hay cambios pendientes' : 'Distribución guardada' }}</div>
-                <div class="small muted">{{ $hayCambiosPendientes ? 'Los cambios solo están en el borrador del editor. Aún no se han escrito en la base de datos.' : 'No hay cambios pendientes de guardar.' }}</div>
+@php
+    $config = [
+        'snapshot' => $snapshot,
+        'capacidad' => $capacidad,
+        'nombreSala' => $salaNombre,
+        // El marcador __ID__ lo sustituye el JS por el id real del asiento.
+        'fichaUrl' => route('admin.asientos.edit', '__ID__'),
+    ];
+    $tipos = [
+        'ESTANDAR' => ['Estándar', '1', 'bi-brush'],
+        'PREFERENCIAL' => ['Preferencial', '2', 'bi-star-fill'],
+        'ACCESIBLE' => ['Accesible', '3', 'bi-person-wheelchair'],
+    ];
+@endphp
+{{-- Raíz de Livewire: un único elemento con el ID que aísla todo el CSS. --}}
+<div id="editor-distribucion-asientos">
+    {{-- wire:ignore: ningún render de Livewire toca el DOM que controla Alpine. --}}
+    <div
+        wire:ignore
+        class="dist-app"
+        x-data="editorDistribucion(@js($config))"
+        x-bind:data-tool="tool"
+        x-on:keydown.window="onKey($event)"
+        x-on:pointerover="tipOver($event)"
+        x-on:pointerout="ocultarTip()"
+        x-on:focusin="tipFocus($event)"
+        x-on:focusout="ocultarTip()"
+        x-on:scroll.window.passive="ocultarTip()"
+    >
+        {{-- ========== Barra de guardado ========== --}}
+        <section class="dist-savebar" aria-label="Guardar o cancelar distribución">
+            <div class="dist-savebar__info">
+                <span class="dist-savebar__dot" x-bind:class="dirty ? 'is-dirty' : 'is-clean'" aria-hidden="true"></span>
+                <div>
+                    <div class="dist-savebar__title" role="status" aria-live="polite" aria-atomic="true" x-text="dirty ? 'Hay cambios pendientes' : 'Distribución guardada'">Distribución guardada</div>
+                    <div class="dist-savebar__sub" x-text="dirty ? 'Los cambios están solo en el borrador del editor. Aún no se han escrito en la base de datos.' : 'No hay cambios pendientes de guardar.'">No hay cambios pendientes de guardar.</div>
+                </div>
             </div>
-            <div class="d-flex flex-wrap gap-2">
-                <button type="button" class="btn btn-outline-secondary" wire:click="cancelarDistribucion" @disabled(!$hayCambiosPendientes) @if($hayCambiosPendientes) wire:confirm="¿Descartar todos los cambios pendientes y recuperar la distribución guardada?" @endif wire:loading.attr="disabled" wire:target="cancelarDistribucion,guardarDistribucion">Cancelar cambios</button>
-                <button type="button" class="btn btn-primary" wire:click="guardarDistribucion" @disabled(!$hayCambiosPendientes) wire:loading.attr="disabled" wire:target="guardarDistribucion,cancelarDistribucion">
-                    <span wire:loading.remove wire:target="guardarDistribucion">Guardar distribución</span>
-                    <span wire:loading wire:target="guardarDistribucion">Aplicando…</span>
+            <div class="dist-savebar__actions">
+                <button type="button" class="dist-btn dist-btn--icon" x-on:click="deshacer()" x-bind:disabled="!canUndo" data-tip="Deshacer (Ctrl+Z)" aria-label="Deshacer">
+                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="dist-btn dist-btn--icon" x-on:click="rehacer()" x-bind:disabled="!canRedo" data-tip="Rehacer (Ctrl+Y)" aria-label="Rehacer">
+                    <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="dist-btn" x-on:click="cancelar()" x-bind:disabled="!dirty || saving">Cancelar cambios</button>
+                <button type="button" class="dist-btn dist-btn--primary" x-on:click="guardar()" x-bind:disabled="!dirty || saving || hayError" x-bind:aria-busy="saving">
+                    <span x-show="!saving">Guardar distribución</span>
+                    <span x-show="saving" x-cloak>Guardando…</span>
                 </button>
             </div>
-        </div>
-        @error('distribucion')<div class="alert alert-danger mt-3 mb-0" role="alert">{{ $message }}</div>@enderror
-    </div>
+            <div class="dist-savebar__alert" x-show="errorGuardado" x-cloak role="alert">
+                <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
+                <span x-text="errorGuardado"></span>
+                <button type="button" class="dist-btn dist-btn--sm" x-show="conflicto" x-on:click="recargar()" x-bind:disabled="saving">Recargar distribución</button>
+            </div>
+        </section>
 
-    <div class="dist-feedback mb-3" role="status" aria-live="polite" aria-atomic="true"
-         x-data="{ mensaje: '', tipo: 'info', temporizador: null }"
-         x-on:editor-mensaje.window="mensaje = $event.detail.mensaje; tipo = $event.detail.tipo || 'info'; if (temporizador) clearTimeout(temporizador); temporizador = setTimeout(() => mensaje = '', 4500)"
-         x-bind:class="mensaje ? 'dist-feedback--visible dist-feedback--' + tipo : ''"
-         x-cloak>
-        <span class="dist-feedback__icon" aria-hidden="true" x-text="tipo === 'success' ? '✓' : (tipo === 'warning' ? '!' : 'i')"></span>
-        <span x-text="mensaje"></span>
-        <button type="button" class="dist-feedback__close" x-on:click="mensaje = ''" aria-label="Cerrar mensaje">×</button>
-    </div>
+        <div class="dist-workspace">
+            {{-- ========== Barra de herramientas ========== --}}
+            <aside class="dist-tools" aria-label="Herramientas de la pizarra">
+                <h2 class="dist-panel-title">Herramientas</h2>
+                <div class="dist-toolbar" role="toolbar" aria-label="Herramientas de la pizarra">
+                    <button type="button" class="dist-tool" x-on:click="setTool('select')" x-bind:class="{ 'is-active': tool === 'select' }" x-bind:aria-pressed="tool === 'select'" data-tip="Seleccionar (V)">
+                        <i class="bi bi-cursor-fill" aria-hidden="true"></i><span>Seleccionar</span>
+                    </button>
+                    <button type="button" class="dist-tool" x-on:click="setTool('create')" x-bind:class="{ 'is-active': tool === 'create' }" x-bind:aria-pressed="tool === 'create'" data-tip="Crear asiento (C)">
+                        <i class="bi bi-plus-square-fill" aria-hidden="true"></i><span>Crear asiento</span>
+                    </button>
+                    @foreach ($tipos as $valor => [$etiqueta, $atajo, $icono])
+                        <button type="button" class="dist-tool" x-on:click="setTool('brush-type', '{{ $valor }}')" x-bind:class="{ 'is-active': tool === 'brush-type' && brushTipo === '{{ $valor }}' }" x-bind:aria-pressed="tool === 'brush-type' && brushTipo === '{{ $valor }}'" data-tip="Pincel {{ strtolower($etiqueta) }} ({{ $atajo }})">
+                            <i class="bi {{ $icono }}" aria-hidden="true"></i><span>Pincel {{ strtolower($etiqueta) }}</span>
+                        </button>
+                    @endforeach
+                    <button type="button" class="dist-tool" x-on:click="setTool('brush-activo', '1')" x-bind:class="{ 'is-active': tool === 'brush-activo' && brushActivo === '1' }" x-bind:aria-pressed="tool === 'brush-activo' && brushActivo === '1'" data-tip="Pintar activos (A)">
+                        <i class="bi bi-circle-fill" aria-hidden="true"></i><span>Pintar activos</span>
+                    </button>
+                    <button type="button" class="dist-tool" x-on:click="setTool('brush-activo', '0')" x-bind:class="{ 'is-active': tool === 'brush-activo' && brushActivo === '0' }" x-bind:aria-pressed="tool === 'brush-activo' && brushActivo === '0'" data-tip="Pintar inactivos (I)">
+                        <i class="bi bi-circle" aria-hidden="true"></i><span>Pintar inactivos</span>
+                    </button>
+                    <button type="button" class="dist-tool" x-on:click="setTool('erase')" x-bind:class="{ 'is-active': tool === 'erase' }" x-bind:aria-pressed="tool === 'erase'" data-tip="Quitar asiento del borrador (Supr con selección)">
+                        <i class="bi bi-eraser-fill" aria-hidden="true"></i><span>Quitar asiento</span>
+                    </button>
+                    <button type="button" class="dist-tool" x-on:click="setTool(tool === 'pan' ? 'select' : 'pan')" x-bind:class="{ 'is-active': tool === 'pan' }" x-bind:aria-pressed="tool === 'pan'" data-tip="Mover pizarra (H)">
+                        <i class="bi bi-arrows-move" aria-hidden="true"></i><span>Mover pizarra</span>
+                    </button>
+                    <button type="button" class="dist-tool" x-on:click="toggleMulti()" x-bind:class="{ 'is-active': multiMode }" x-bind:aria-pressed="multiMode" data-tip="Selección múltiple táctil: cada toque suma o quita">
+                        <i class="bi bi-ui-checks-grid" aria-hidden="true"></i><span>Selección múltiple</span>
+                    </button>
+                    <button type="button" class="dist-tool" x-on:click="abrirAyuda()" data-tip="Atajos de teclado (?)">
+                        <i class="bi bi-question-circle" aria-hidden="true"></i><span>Ayuda</span>
+                    </button>
+                </div>
 
-    <div class="dist-workspace" aria-label="Área de trabajo de distribución">
-        <aside class="dist-workspace__tools" aria-label="Herramientas y creación">
-    <details class="panel rounded-3 mb-3 dist-section dist-create-panel dist-foldable-panel">
-        <summary class="dist-foldable-heading">
-            <span class="h5 mb-0">Crear asientos por fila</span>
-            <span class="small muted">Crear un rango sin modificar posiciones existentes</span>
-        </summary>
-        <div class="dist-foldable-content p-3 pt-0">
-
-        <p class="small muted">Genera un rango de asientos de una sola vez. Las posiciones que ya existen se omiten y no se modifican.</p>
-        <form wire:submit="previsualizarCreacionMasiva">
-            <div class="row g-3">
-                <div class="col-6 col-md-2">
-                    <label for="dist-fila-masiva" class="form-label">Fila</label>
-                    <input id="dist-fila-masiva" type="text" maxlength="5" class="form-control @error('filaMasiva') is-invalid @enderror" wire:model="filaMasiva" required>
-                    @error('filaMasiva')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-6 col-md-2">
-                    <label for="dist-inicio-masivo" class="form-label">Número inicial</label>
-                    <input id="dist-inicio-masivo" type="number" min="1" max="65535" class="form-control @error('numeroInicioMasivo') is-invalid @enderror" wire:model="numeroInicioMasivo" required>
-                    @error('numeroInicioMasivo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-6 col-md-2">
-                    <label for="dist-fin-masivo" class="form-label">Número final</label>
-                    <input id="dist-fin-masivo" type="number" min="1" max="65535" class="form-control @error('numeroFinMasivo') is-invalid @enderror" wire:model="numeroFinMasivo" required>
-                    @error('numeroFinMasivo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-6 col-md-3">
-                    <label for="dist-tipo-masivo" class="form-label">Tipo</label>
-                    <select id="dist-tipo-masivo" class="form-select @error('tipoMasivo') is-invalid @enderror" wire:model="tipoMasivo" required>
-                        @foreach ($tipoOptions as $valor => $etiqueta)<option value="{{ $valor }}">{{ $etiqueta }}</option>@endforeach
+                <div class="dist-tool-options" x-show="tool === 'create'" x-cloak>
+                    <label for="dist-create-tipo">Tipo al crear</label>
+                    <select id="dist-create-tipo" x-model="createTipo" x-on:change="setTool('create')">
+                        @foreach ($tipos as $valor => [$etiqueta])
+                            <option value="{{ $valor }}">{{ $etiqueta }}</option>
+                        @endforeach
                     </select>
-                    @error('tipoMasivo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-6 col-md-3">
-                    <label for="dist-activo-masivo" class="form-label">Disponibilidad</label>
-                    <select id="dist-activo-masivo" class="form-select @error('activoMasivo') is-invalid @enderror" wire:model="activoMasivo" required>
-                        @foreach ($activoOptions as $valor => $etiqueta)<option value="{{ $valor }}">{{ $etiqueta }}</option>@endforeach
+                    <label for="dist-create-activo">Disponibilidad al crear</label>
+                    <select id="dist-create-activo" x-model="createActivo" x-on:change="setTool('create')">
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
                     </select>
-                    @error('activoMasivo')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
-            </div>
-            <div class="d-flex justify-content-end mt-3">
-                <button type="submit" class="btn btn-outline-light" wire:loading.attr="disabled" wire:target="previsualizarCreacionMasiva">Previsualizar rango</button>
-            </div>
-        </form>
-        @if ($vistaPreviaMasiva !== [])
-            <div class="alert alert-info mt-3 mb-0" role="status">
-                <strong>Vista previa: fila {{ $vistaPreviaMasiva['fila'] }}, números {{ $vistaPreviaMasiva['inicio'] }}–{{ $vistaPreviaMasiva['fin'] }}.</strong>
-                Se crearán {{ $vistaPreviaMasiva['faltantes'] }} asiento(s); {{ $vistaPreviaMasiva['existentes'] }} posición(es) ya existen y se conservarán sin cambios.
-                @if ($vistaPreviaMasiva['faltantes'] > 0)
-                    <div class="mt-2">Números nuevos: {{ implode(', ', $vistaPreviaMasiva['numeros_faltantes']) }}</div>
-                @endif
-                <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
-                    <button type="button" class="btn btn-outline-secondary" wire:click="$set('vistaPreviaMasiva', [])">Cancelar</button>
-                    <button type="button" class="btn btn-primary" wire:click="crearAsientosMasivos" wire:loading.attr="disabled" wire:target="crearAsientosMasivos" @disabled($vistaPreviaMasiva['faltantes'] === 0)>Crear en el borrador</button>
-                </div>
-            </div>
-        @endif
-        </div>
-    </details>
 
-    <section class="dist-toolstrip mb-3" aria-label="Herramientas de selección y pinceles">
-        <div class="dist-toolstrip__intro">
-            <div>
-                <h2 class="h6 mb-1">Herramientas de la pizarra</h2>
-                <p class="small muted mb-0">Selecciona una herramienta; los pinceles permanecen activos hasta que elijas otra.</p>
-            </div>
-            <span class="badge" x-bind:class="activeTool === 'select' ? 'text-bg-secondary' : (activeTool === 'pan' ? 'text-bg-info' : 'text-bg-warning')" x-text="({select:'Selección', 'brush-type':'Pincel de tipo', 'brush-availability':'Pincel de disponibilidad', pan:'Mover pizarra'})[activeTool]">Selección</span>
-        </div>
-        <div class="dist-toolstrip__actions dist-toolstrip__tools" role="toolbar" aria-label="Herramientas de la pizarra">
-            <button type="button" class="btn btn-outline-light" x-on:click="activateTool('select')" x-bind:class="activeTool === 'select' ? 'dist-tool-active' : ''" x-bind:aria-pressed="(activeTool === 'select').toString()" aria-label="Seleccionar o editar asientos">↖ Seleccionar</button>
-            <button type="button" class="btn btn-outline-light" x-on:click="chooseTypeBrush('ESTANDAR')" x-bind:class="activeTool === 'brush-type' && brushType === 'ESTANDAR' ? 'dist-tool-active' : ''" x-bind:aria-pressed="(activeTool === 'brush-type' && brushType === 'ESTANDAR').toString()">▧ Pincel estándar</button>
-            <button type="button" class="btn btn-outline-light" x-on:click="chooseTypeBrush('PREFERENCIAL')" x-bind:class="activeTool === 'brush-type' && brushType === 'PREFERENCIAL' ? 'dist-tool-active' : ''" x-bind:aria-pressed="(activeTool === 'brush-type' && brushType === 'PREFERENCIAL').toString()">▧ Pincel preferencial</button>
-            <button type="button" class="btn btn-outline-light" x-on:click="chooseTypeBrush('ACCESIBLE')" x-bind:class="activeTool === 'brush-type' && brushType === 'ACCESIBLE' ? 'dist-tool-active' : ''" x-bind:aria-pressed="(activeTool === 'brush-type' && brushType === 'ACCESIBLE').toString()">♿ Pincel accesible</button>
-            <button type="button" class="btn btn-outline-light" x-on:click="chooseAvailabilityBrush('1')" x-bind:class="activeTool === 'brush-availability' && brushAvailability === '1' ? 'dist-tool-active' : ''" x-bind:aria-pressed="(activeTool === 'brush-availability' && brushAvailability === '1').toString()">● Pintar activos</button>
-            <button type="button" class="btn btn-outline-light" x-on:click="chooseAvailabilityBrush('0')" x-bind:class="activeTool === 'brush-availability' && brushAvailability === '0' ? 'dist-tool-active' : ''" x-bind:aria-pressed="(activeTool === 'brush-availability' && brushAvailability === '0').toString()">○ Pintar inactivos</button>
-            <button type="button" class="btn btn-outline-light" x-on:click="activateTool('pan')" x-bind:class="activeTool === 'pan' ? 'dist-tool-active' : ''" x-bind:aria-pressed="(activeTool === 'pan').toString()">✥ Mover pizarra</button>
-            @if (!$modoSeleccionMultiple)
-                <button type="button" class="btn btn-outline-light" wire:click="activarSeleccionMultiple" wire:loading.attr="disabled" wire:target="activarSeleccionMultiple">▦ Selección múltiple</button>
-            @else
-                <button type="button" class="btn btn-warning" wire:click="cancelarSeleccionMultiple" wire:loading.attr="disabled" wire:target="cancelarSeleccionMultiple">Salir de selección múltiple</button>
-                <span class="dist-toolstrip__count" aria-live="polite"><strong x-text="selectedIds().length">{{ count($asientosSeleccionados) }}</strong> seleccionado(s)</span>
-            @endif
-        </div>
-        <p class="dist-tool-message small mb-0" role="status" aria-live="polite" aria-atomic="true" x-text="toolMessage">Herramienta Seleccionar activa. Elige un asiento para ver o editar sus detalles.</p>
-    </section>
+                <div class="dist-tool-extra">
+                    <button type="button" class="dist-btn dist-btn--sm" x-on:click="agregarFila()" data-tip="Agrega una fila vacía al plano">+ Fila</button>
+                    <button type="button" class="dist-btn dist-btn--sm" x-on:click="agregarColumnas()" data-tip="Muestra más columnas (máximo 30)">+ Columnas</button>
+                </div>
+            </aside>
 
-    @if ($modoSeleccionMultiple)
-        <div class="panel rounded-3 p-3 mb-3 dist-section dist-bulk-panel" x-ref="bulkPanel" aria-labelledby="dist-edicion-masiva-titulo">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                <h2 id="dist-edicion-masiva-titulo" class="h5 mb-0">Edición masiva de asientos</h2>
-                <span class="small muted">Selecciona asientos en el plano y aplica una acción al conjunto.</span>
-            </div>
-            <p class="small muted">Haz clic en los asientos del plano para agregarlos o quitarlos de la selección. Los asientos con historial pueden cambiar de disponibilidad, pero no de tipo ni eliminarse. Las eliminaciones afectan solo al borrador hasta que guardes la distribución.</p>
-            <div class="row g-3">
-                <div class="col-12 col-md-6">
-                    <label for="dist-tipo-edicion-masiva" class="form-label">Nuevo tipo (opcional)</label>
-                    <select id="dist-tipo-edicion-masiva" class="form-select @error('tipoEdicionMasiva') is-invalid @enderror" wire:model="tipoEdicionMasiva">
-                        <option value="">No cambiar el tipo</option>
-                        @foreach ($tipoOptions as $valor => $etiqueta)<option value="{{ $valor }}">{{ $etiqueta }}</option>@endforeach
-                    </select>
-                    @error('tipoEdicionMasiva')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            {{-- ========== Pizarra central ========== --}}
+            <main class="dist-canvas" aria-label="Pizarra de asientos">
+                {{-- Plantilla: solo para salas sin asientos --}}
+                <section class="dist-template" x-show="vacia" x-cloak aria-label="Plantilla para sala vacía">
+                    <div class="dist-template__head">
+                        <h2 class="dist-panel-title mb-1">Sala sin asientos</h2>
+                        <p class="dist-muted mb-0">Puedes empezar con una plantilla o crear asientos con la herramienta «Crear asiento». Nada se guarda hasta pulsar «Guardar distribución».</p>
+                    </div>
+                    <div class="dist-template__body">
+                        <div class="dist-field">
+                            <label for="dist-tpl-tipo">Tipo por defecto</label>
+                            <select id="dist-tpl-tipo" x-model="tplTipo">
+                                @foreach ($tipos as $valor => [$etiqueta])
+                                    <option value="{{ $valor }}">{{ $etiqueta }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <label class="dist-check">
+                            <input type="checkbox" x-model="tplCentrales">
+                            <span>Marcar las filas centrales como Preferencial</span>
+                        </label>
+                        <p class="dist-template__preview" role="status" aria-live="polite">
+                            <strong x-text="plantilla.total + ' asientos'"></strong>
+                            en <span x-text="plantilla.filas"></span> fila(s) (A–<span x-text="plantilla.ultimaFila"></span>) ×
+                            <span x-text="plantilla.columnas"></span> columna(s)
+                            <span x-text="plantilla.basica ? '· plantilla básica (la sala no tiene capacidad informada)' : '· ajustada a la capacidad informada'"></span>.
+                            <span x-show="plantilla.recortado" x-cloak>La capacidad supera 780: se recorta a 780.</span>
+                        </p>
+                        <button type="button" class="dist-btn dist-btn--primary" x-on:click="aplicarPlantilla()">Vista previa y aplicar al borrador</button>
+                    </div>
+                </section>
+
+                {{-- Barra contextual --}}
+                <section class="dist-contextbar" x-show="selCount > 0" x-cloak aria-label="Acciones de la selección">
+                    <div class="dist-contextbar__identity">
+                        <i class="bi" x-bind:class="selCount === 1 && selSeat && selSeat.protegido ? 'bi-lock-fill' : 'bi-grid-3x3-gap-fill'" aria-hidden="true"></i>
+                        <div>
+                            <div class="dist-contextbar__title" x-text="selCount === 1 && selSeat ? 'Asiento ' + selSeat.fila + '-' + selSeat.numero : selCount + ' asientos seleccionados'"></div>
+                            <div class="dist-muted" x-show="selCount === 1 && selSeat" x-text="selSeat ? etiquetaTipo(selSeat.tipo) + ' · ' + (selSeat.activo ? 'Activo' : 'Inactivo') + (selSeat.protegido ? ' · Protegido por historial' : '') : ''"></div>
+                            <div class="dist-muted" x-show="selCount > 1 && selProt > 0" x-cloak x-text="selProt + ' con historial (conservan tipo y posición)'"></div>
+                        </div>
+                    </div>
+                    <div class="dist-contextbar__actions">
+                        <span class="dist-contextbar__label">Tipo</span>
+                        @foreach ($tipos as $valor => [$etiqueta])
+                            <button type="button" class="dist-btn dist-btn--sm" x-on:click="accionTipo('{{ $valor }}')" x-bind:disabled="selCount === 1 && selSeat && selSeat.protegido" x-bind:class="{ 'is-current': selCount === 1 && selSeat && selSeat.tipo === '{{ $valor }}' }">{{ $etiqueta }}</button>
+                        @endforeach
+                        <span class="dist-contextbar__label">Disponibilidad</span>
+                        <button type="button" class="dist-btn dist-btn--sm" x-on:click="accionActivo(1)" x-bind:class="{ 'is-current': selCount === 1 && selSeat && selSeat.activo === 1 }">Activo</button>
+                        <button type="button" class="dist-btn dist-btn--sm" x-on:click="accionActivo(0)" x-bind:class="{ 'is-current': selCount === 1 && selSeat && selSeat.activo === 0 }">Inactivo</button>
+                        <button type="button" class="dist-btn dist-btn--sm" x-show="selCount === 2" x-cloak x-on:click="intercambiar()" x-bind:disabled="!puedeIntercambiar" data-tip="Intercambia la posición de los dos asientos (no disponible con historial)">Intercambiar posiciones</button>
+                        <button type="button" class="dist-btn dist-btn--sm dist-btn--danger" x-on:click="accionQuitar()" data-tip="Quitar del borrador (Supr)">Quitar del borrador</button>
+                        <button type="button" class="dist-btn dist-btn--sm" x-on:click="limpiarSel()" data-tip="Limpiar selección (Esc)">Limpiar selección</button>
+                    </div>
+                </section>
+
+                <section class="dist-board" aria-label="Plano de asientos">
+                    <div class="dist-board__head">
+                        <h2 class="dist-panel-title mb-0">Plano de asientos</h2>
+                        <ul class="dist-legend" aria-label="Leyenda de asientos">
+                            <li><span class="dist-ley dist-asiento t-ESTANDAR is-activo" aria-hidden="true"></span>Estándar</li>
+                            <li><span class="dist-ley dist-asiento t-PREFERENCIAL is-activo" aria-hidden="true"><i class="bi bi-star-fill dist-ico"></i></span>Preferencial</li>
+                            <li><span class="dist-ley dist-asiento t-ACCESIBLE is-activo" aria-hidden="true"><i class="bi bi-person-wheelchair dist-ico"></i></span>Accesible</li>
+                            <li><span class="dist-ley dist-asiento t-ESTANDAR is-inactivo" aria-hidden="true"></span>Inactivo</li>
+                            <li><span class="dist-ley dist-asiento t-ESTANDAR is-activo is-protegido" aria-hidden="true"><i class="bi bi-lock-fill dist-lock"></i></span>Con historial</li>
+                            <li><span class="dist-ley dist-asiento is-vacio" aria-hidden="true"></span>Vacío</li>
+                            <li><span class="dist-ley dist-ley--pasillo" aria-hidden="true"></span>Pasillo</li>
+                        </ul>
+                    </div>
+
+                    <div class="dist-pantalla"><span class="material-symbols-outlined" aria-hidden="true">movie</span>PANTALLA</div>
+
+                    <div class="dist-stage">
+                        <div class="dist-zoombar" role="group" aria-label="Controles de zoom">
+                            <button type="button" class="dist-btn dist-btn--icon" x-on:click="cambiarZoom(-10)" x-bind:disabled="zoom <= minZoom" data-tip="Alejar" aria-label="Alejar plano"><i class="bi bi-dash-lg" aria-hidden="true"></i></button>
+                            <output class="dist-zoombar__value" aria-live="polite" aria-label="Nivel de zoom" x-text="zoom + '%'">100%</output>
+                            <button type="button" class="dist-btn dist-btn--icon" x-on:click="cambiarZoom(10)" x-bind:disabled="zoom >= maxZoom" data-tip="Acercar" aria-label="Acercar plano"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                            <button type="button" class="dist-btn dist-btn--sm" x-on:click="ajustarSala()" data-tip="Ajustar el plano al ancho visible">Ajustar sala</button>
+                            <button type="button" class="dist-btn dist-btn--sm" x-on:click="restablecerZoom()">Restablecer 100%</button>
+                        </div>
+
+                        <div class="dist-grid-wrap" x-ref="boardViewport" tabindex="0"
+                             aria-label="Plano desplazable de asientos. Usa las flechas para moverte entre celdas, Enter para activar, P para un pasillo. Dos dedos para ampliar o reducir."
+                             x-bind:class="{ 'is-panning': esPan }"
+                             x-on:pointerdown="onPointerDown($event)"
+                             x-on:pointermove="onPointerMove($event)"
+                             x-on:pointerup="onPointerUp($event)"
+                             x-on:pointercancel="onPointerUp($event)"
+                             x-on:lostpointercapture="onPointerUp($event)"
+                             x-on:click.capture="onClick($event)"
+                             x-on:keydown="onKeyDownPlano($event)"
+                             x-on:focusin="onFocusIn($event)"
+                             x-on:wheel="onWheel($event)">
+                            {{-- El plano lo dibuja renderPlano() en el JS. --}}
+                            <div class="dist-zoom" x-ref="plano" x-bind:style="{ zoom: zoom + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <p class="dist-interaction-status" role="status" aria-live="polite" aria-atomic="true" x-text="statusMsg"></p>
+                    <p class="dist-muted dist-board__help">Usa los separadores entre números para pasillos longitudinales y los separadores entre filas para transversales. Los asientos con candado tienen historial: solo cambia su disponibilidad. Todo queda en el borrador hasta guardar.</p>
+                </section>
+
+                {{-- Barra de estado --}}
+                <section class="dist-statusbar" aria-label="Estado de la distribución">
+                    <div class="dist-statusbar__counts">
+                        <span><strong x-text="stats.total"></strong> asientos</span>
+                        <span><strong x-text="stats.activos"></strong> activos</span>
+                        <span><strong x-text="stats.inactivos"></strong> inactivos</span>
+                        <span><strong x-text="stats.protegidos"></strong> con historial</span>
+                        <span><strong x-text="stats.pasillos"></strong> pasillos</span>
+                    </div>
+                    <div class="dist-capacity" x-show="capacidad" x-cloak>
+                        <div class="dist-capacity__text" x-bind:class="{ 'is-over': sobreCapacidad }">
+                            <span x-text="stats.total + ' asientos de ' + capacidad + ' (capacidad informada)'"></span>
+                            <span x-show="sobreCapacidad" x-cloak>· supera la capacidad (solo informativo)</span>
+                        </div>
+                        <div class="dist-capacity__bar" role="progressbar" aria-label="Asientos respecto a la capacidad informada" aria-valuemin="0" aria-valuemax="100" x-bind:aria-valuenow="capacidadPct">
+                            <div class="dist-capacity__fill" x-bind:class="{ 'is-over': sobreCapacidad }" x-bind:style="{ width: capacidadPct + '%' }"></div>
+                        </div>
+                    </div>
+                    <div class="dist-capacity" x-show="!capacidad">
+                        <div class="dist-capacity__text"><span x-text="stats.total + ' asientos · capacidad no especificada'"></span></div>
+                    </div>
+                </section>
+            </main>
+
+            {{-- ========== Inspector ========== --}}
+            <aside class="dist-inspector" aria-label="Resumen y propiedades">
+                <button type="button" class="dist-inspector__toggle" x-on:click="inspectorAbierto = !inspectorAbierto" x-bind:aria-expanded="inspectorAbierto" aria-controls="dist-inspector-body">
+                    <span class="dist-panel-title mb-0">Inspector</span>
+                    <i class="bi" x-bind:class="inspectorAbierto ? 'bi-chevron-up' : 'bi-chevron-down'" aria-hidden="true"></i>
+                </button>
+                <div id="dist-inspector-body" class="dist-inspector__body" x-bind:class="{ 'is-plegado': !inspectorAbierto }">
+                    <section class="dist-card" aria-label="Propiedades del asiento">
+                        <h2 class="dist-panel-title" x-text="selSeat ? 'Asiento ' + selSeat.fila + '-' + selSeat.numero : (selCount > 1 ? selCount + ' asientos' : 'Propiedades')"></h2>
+
+                        <p class="dist-muted" x-show="selCount === 0">Selecciona un asiento en el plano para ver y editar sus propiedades.</p>
+                        <p class="dist-muted" x-show="selCount > 1" x-cloak>Con varios asientos seleccionados usa las acciones de la barra contextual sobre la pizarra.</p>
+
+                        <template x-if="selSeat">
+                            <form x-on:submit.prevent="aplicarForm()" class="dist-form">
+                                <div class="dist-alert dist-alert--warn" x-show="selSeat.protegido" role="status">
+                                    <i class="bi bi-lock-fill" aria-hidden="true"></i>
+                                    <span>Tiene historial de funciones. No se puede cambiar su tipo ni ubicación, ni eliminarlo; solo su disponibilidad.</span>
+                                </div>
+                                <div class="dist-form__row">
+                                    <div class="dist-field">
+                                        <label for="dist-fila">Fila</label>
+                                        <input id="dist-fila" type="text" maxlength="5" x-model="form.fila" x-bind:disabled="selSeat.protegido" autocomplete="off">
+                                    </div>
+                                    <div class="dist-field">
+                                        <label for="dist-numero">Número</label>
+                                        <input id="dist-numero" type="number" min="1" max="65535" x-model.number="form.numero" x-bind:disabled="selSeat.protegido">
+                                    </div>
+                                </div>
+                                <div class="dist-field">
+                                    <label for="dist-tipo">Tipo de asiento</label>
+                                    <select id="dist-tipo" x-model="form.tipo" x-bind:disabled="selSeat.protegido">
+                                        @foreach ($tipos as $valor => [$etiqueta])
+                                            <option value="{{ $valor }}">{{ $etiqueta }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="dist-field">
+                                    <label for="dist-activo">Disponibilidad</label>
+                                    <select id="dist-activo" x-model="form.activo">
+                                        <option value="1">Activo</option>
+                                        <option value="0">Inactivo</option>
+                                    </select>
+                                </div>
+                                <div class="dist-form__actions">
+                                    <a class="dist-btn dist-btn--sm" x-show="fichaUrl" x-bind:href="fichaUrl">Ver ficha completa</a>
+                                    <button type="button" class="dist-btn dist-btn--sm dist-btn--danger" x-show="!selSeat.protegido" x-on:click="accionQuitar()">Quitar del borrador</button>
+                                    <button type="submit" class="dist-btn dist-btn--primary dist-btn--sm">Aplicar al borrador</button>
+                                </div>
+                            </form>
+                        </template>
+                    </section>
+
+                    <section class="dist-card" aria-label="Resumen">
+                        <h2 class="dist-panel-title">Resumen</h2>
+                        <dl class="dist-summary">
+                            <div><dt>Asientos</dt><dd x-text="stats.total"></dd></div>
+                            <div><dt>Activos</dt><dd x-text="stats.activos"></dd></div>
+                            <div><dt>Inactivos</dt><dd x-text="stats.inactivos"></dd></div>
+                            <div><dt>Con historial</dt><dd x-text="stats.protegidos"></dd></div>
+                            <div><dt>Pasillos</dt><dd x-text="stats.pasillos"></dd></div>
+                            <div><dt>Capacidad informativa</dt><dd x-text="capacidad ?? 'No especificada'"></dd></div>
+                        </dl>
+                    </section>
+
+                    <section class="dist-card" aria-label="Validación de la distribución">
+                        <h2 class="dist-panel-title">Validación</h2>
+                        <p class="dist-muted mb-0" x-show="advertencias.length === 0">Sin advertencias. La revisión es informativa y no bloquea la edición, salvo los pasillos transversales inválidos.</p>
+                        <ul class="dist-warnings" x-show="advertencias.length > 0" x-cloak>
+                            <template x-for="(a, i) in advertencias" x-bind:key="a.tipo + i">
+                                <li x-bind:class="a.nivel === 'error' ? 'is-error' : 'is-aviso'">
+                                    <i class="bi" x-bind:class="a.nivel === 'error' ? 'bi-x-octagon-fill' : 'bi-exclamation-triangle-fill'" aria-hidden="true"></i>
+                                    <span x-text="a.mensaje"></span>
+                                </li>
+                            </template>
+                        </ul>
+                        <p class="dist-muted" x-show="advertencias.length > 0" x-cloak>Los huecos pueden ser intencionales; no se renumeran asientos.</p>
+                    </section>
                 </div>
-                <div class="col-12 col-md-6">
-                    <label for="dist-activo-edicion-masiva" class="form-label">Disponibilidad (opcional)</label>
-                    <select id="dist-activo-edicion-masiva" class="form-select @error('activoEdicionMasiva') is-invalid @enderror" wire:model="activoEdicionMasiva">
-                        <option value="">No cambiar la disponibilidad</option>
-                        @foreach ($activoOptions as $valor => $etiqueta)<option value="{{ $valor }}">{{ $etiqueta }}</option>@endforeach
-                    </select>
-                    @error('activoEdicionMasiva')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </aside>
+        </div>
+
+        {{-- ========== Tooltip propio ========== --}}
+        <div id="dist-tooltip" class="dist-tooltip" role="tooltip" x-show="tip.visible" x-cloak
+             x-bind:class="{ 'is-abajo': tip.abajo }" x-bind:style="{ left: tip.x + 'px', top: tip.y + 'px' }" x-text="tip.texto"></div>
+
+        {{-- ========== Toasts ========== --}}
+        <div class="dist-toasts" aria-live="polite">
+            <template x-for="t in toasts" x-bind:key="t.id">
+                <div class="dist-toast" x-bind:class="'is-' + t.tipo" x-bind:role="t.tipo === 'error' ? 'alert' : 'status'">
+                    <i class="bi" x-bind:class="{ 'bi-check-circle-fill': t.tipo === 'success', 'bi-info-circle-fill': t.tipo === 'info', 'bi-exclamation-triangle-fill': t.tipo === 'warning', 'bi-x-octagon-fill': t.tipo === 'error' }" aria-hidden="true"></i>
+                    <span x-text="t.mensaje"></span>
+                    <button type="button" class="dist-toast__close" x-on:click="cerrarToast(t.id)" aria-label="Cerrar mensaje">×</button>
                 </div>
-            </div>
-            @error('asientosSeleccionados')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
-            <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
-                <button type="button" class="btn btn-outline-light" x-on:click.prevent="syncSelectionAndCall('intercambiarPosicionesSeleccionadas')" wire:loading.attr="disabled" wire:target="intercambiarPosicionesSeleccionadas" x-bind:disabled="selectedIds().length !== 2">Intercambiar posiciones</button>
-                <button type="button" class="btn btn-outline-danger" x-on:click.prevent="syncSelectionAndCall('eliminarAsientosMasivos')" wire:loading.attr="disabled" wire:target="eliminarAsientosMasivos">Eliminar seleccionados del borrador</button>
-                <button type="button" class="btn btn-outline-light" x-on:click.prevent="syncSelectionAndCall('previsualizarEdicionMasiva')" wire:loading.attr="disabled" wire:target="previsualizarEdicionMasiva">Previsualizar cambios</button>
-            </div>
-            @if ($vistaPreviaEdicionMasiva !== [])
-                <div class="alert alert-info mt-3 mb-0" role="status">
-                    <strong>Vista previa:</strong> {{ $vistaPreviaEdicionMasiva['seleccionados'] }} asiento(s) seleccionados; {{ $vistaPreviaEdicionMasiva['protegidos'] }} con historial.
-                    @if ($vistaPreviaEdicionMasiva['tipo'] !== '')
-                        <div>{{ $vistaPreviaEdicionMasiva['modificables_tipo'] }} cambiarán de tipo; {{ $vistaPreviaEdicionMasiva['tipo_bloqueado'] }} conservarán su tipo por protección del historial.</div>
-                    @endif
-                    @if ($vistaPreviaEdicionMasiva['activo'] !== '')
-                        <div>{{ $vistaPreviaEdicionMasiva['afectados_estado'] }} asiento(s) cambiarán a {{ $vistaPreviaEdicionMasiva['activo'] === '1' ? 'activo' : 'inactivo' }}.</div>
-                    @endif
-                    <div class="d-flex justify-content-end mt-3">
-                        <button type="button" class="btn btn-primary" x-on:click.prevent="syncSelectionAndCall('aplicarEdicionMasiva')" wire:loading.attr="disabled" wire:target="aplicarEdicionMasiva">Aplicar al borrador</button>
+            </template>
+        </div>
+
+        {{-- ========== Diálogo propio (confirmación y ayuda) ========== --}}
+        <div class="dist-modal-backdrop" x-show="modal.tipo" x-cloak x-on:keydown="onKeyModal($event)">
+            <div class="dist-modal" x-ref="modalCaja" role="dialog" aria-modal="true" aria-labelledby="dist-modal-titulo">
+                <h2 id="dist-modal-titulo" class="dist-modal__title" x-text="modal.titulo"></h2>
+
+                <div x-show="modal.tipo === 'confirm'">
+                    <p class="dist-modal__text" x-text="modal.mensaje"></p>
+                    <ul class="dist-modal__list" x-show="modal.detalles.length" x-cloak>
+                        <template x-for="(d, i) in modal.detalles" x-bind:key="i"><li x-text="d"></li></template>
+                    </ul>
+                    <div class="dist-modal__actions">
+                        <button type="button" class="dist-btn" x-on:click="cerrarModal(false)" x-text="modal.cancelar"></button>
+                        <button type="button" class="dist-btn" x-bind:class="modal.peligro ? 'dist-btn--danger-solid' : 'dist-btn--primary'" data-modal-autofocus x-on:click="cerrarModal(true)" x-text="modal.confirmar"></button>
                     </div>
                 </div>
-            @endif
-        </div>
-    @endif
 
-        </aside>
-        <main class="dist-workspace__canvas" aria-label="Pizarra de asientos">
-    {{-- Barra contextual: acciones rápidas para la selección actual. --}}
-    @if ($modoSeleccionMultiple)
-        <section class="dist-contextbar mb-3" aria-label="Acciones contextuales de la selección múltiple" aria-live="polite">
-            <div class="dist-contextbar__identity">
-                <span class="dist-contextbar__icon" aria-hidden="true">▦</span>
-                <div>
-                    <h2 class="h6 mb-1">Acciones de la selección</h2>
-                    <p class="small muted mb-0"><strong x-text="selectedIds().length">{{ count($asientosSeleccionados) }}</strong> asiento(s) seleccionado(s). Las acciones se aplican al borrador.</p>
+                <div x-show="modal.tipo === 'help'" x-cloak>
+                    <dl class="dist-shortcuts">
+                        <div><dt><kbd>V</kbd></dt><dd>Seleccionar</dd></div>
+                        <div><dt><kbd>C</kbd></dt><dd>Crear asiento</dd></div>
+                        <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Pincel Estándar / Preferencial / Accesible</dd></div>
+                        <div><dt><kbd>A</kbd> / <kbd>I</kbd></dt><dd>Pincel activo / inactivo</dd></div>
+                        <div><dt><kbd>H</kbd></dt><dd>Mover pizarra</dd></div>
+                        <div><dt><kbd>Supr</kbd></dt><dd>Quitar la selección del borrador</dd></div>
+                        <div><dt><kbd>Esc</kbd></dt><dd>Limpiar selección o volver a Seleccionar</dd></div>
+                        <div><dt><kbd>Ctrl</kbd>+<kbd>Z</kbd></dt><dd>Deshacer</dd></div>
+                        <div><dt><kbd>Ctrl</kbd>+<kbd>Y</kbd> / <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></dt><dd>Rehacer</dd></div>
+                        <div><dt><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + clic</dt><dd>Sumar o quitar de la selección</dd></div>
+                        <div><dt><kbd>Shift</kbd> + clic</dt><dd>Seleccionar un rango en la misma fila</dd></div>
+                        <div><dt>Clic en la letra de fila</dt><dd>Seleccionar la fila entera</dd></div>
+                        <div><dt><kbd>Ctrl</kbd> + rueda</dt><dd>Zoom del plano</dd></div>
+                        <div><dt>Flechas, <kbd>Enter</kbd>/<kbd>Espacio</kbd></dt><dd>Moverse por el plano y activar la celda</dd></div>
+                        <div><dt><kbd>P</kbd> / <kbd>Shift</kbd>+<kbd>P</kbd></dt><dd>Pasillo tras la celda / pasillo transversal bajo la fila</dd></div>
+                        <div><dt><kbd>?</kbd></dt><dd>Abrir esta ayuda</dd></div>
+                    </dl>
+                    <p class="dist-muted">Con ratón o lápiz, los pinceles y «Crear asiento» pintan arrastrando. En pantallas táctiles, un toque por asiento.</p>
+                    <div class="dist-modal__actions">
+                        <button type="button" class="dist-btn dist-btn--primary" data-modal-autofocus x-on:click="cerrarModal(false)">Cerrar</button>
+                    </div>
                 </div>
             </div>
-            <div class="dist-contextbar__actions">
-                <button type="button" class="btn btn-outline-light" x-on:click="$refs.bulkPanel?.scrollIntoView({behavior: 'smooth', block: 'center'})" aria-controls="dist-edicion-masiva-titulo">Editar selección</button>
-                <button type="button" class="btn btn-outline-light" x-on:click.prevent="syncSelectionAndCall('intercambiarPosicionesSeleccionadas')" x-bind:disabled="selectedIds().length !== 2" wire:loading.attr="disabled" wire:target="intercambiarPosicionesSeleccionadas">Intercambiar posiciones</button>
-                <button type="button" class="btn btn-outline-secondary" wire:click="cancelarSeleccionMultiple" wire:loading.attr="disabled" wire:target="cancelarSeleccionMultiple">Terminar selección</button>
-            </div>
-        </section>
-    @elseif ($seleccion)
-        <section class="dist-contextbar mb-3" aria-label="Acciones contextuales del asiento seleccionado">
-            <div class="dist-contextbar__identity">
-                <span class="dist-contextbar__icon" aria-hidden="true">{{ $seleccion['protegido'] ? '🔒' : '▣' }}</span>
-                <div>
-                    <h2 class="h6 mb-1">Asiento {{ $seleccion['fila'] }}-{{ $seleccion['numero'] }}</h2>
-                    <p class="small muted mb-0">{{ ucfirst(strtolower($seleccion['tipo'])) }} · {{ $seleccion['activo'] ? 'Activo' : 'Inactivo' }}{{ $seleccion['protegido'] ? ' · Protegido por historial' : '' }} · Cambios pendientes hasta guardar.</p>
-                </div>
-            </div>
-            <div class="dist-contextbar__actions">
-                <span class="dist-contextbar__label">Tipo</span>
-                @foreach ($tipoOptions as $valor => $etiqueta)
-                    <button type="button" class="btn btn-sm {{ $seleccion['tipo'] === $valor ? 'btn-primary' : 'btn-outline-light' }}" wire:click="pintarAsiento({{ (int) $seleccion['id'] }}, 'tipo', '{{ $valor }}')" @disabled($seleccion['protegido'] || $seleccion['tipo'] === $valor) wire:loading.attr="disabled" wire:target="pintarAsiento" aria-label="Cambiar asiento {{ $seleccion['fila'] }}-{{ $seleccion['numero'] }} a tipo {{ $etiqueta }}">{{ $etiqueta }}</button>
-                @endforeach
-                <span class="dist-contextbar__divider" aria-hidden="true"></span>
-                <span class="dist-contextbar__label">Disponibilidad</span>
-                <button type="button" class="btn btn-sm {{ $seleccion['activo'] ? 'btn-primary' : 'btn-outline-light' }}" wire:click="pintarAsiento({{ (int) $seleccion['id'] }}, 'activo', '1')" @disabled((bool) $seleccion['activo']) wire:loading.attr="disabled" wire:target="pintarAsiento">Activo</button>
-                <button type="button" class="btn btn-sm {{ !$seleccion['activo'] ? 'btn-primary' : 'btn-outline-light' }}" wire:click="pintarAsiento({{ (int) $seleccion['id'] }}, 'activo', '0')" @disabled(!(bool) $seleccion['activo']) wire:loading.attr="disabled" wire:target="pintarAsiento">Inactivo</button>
-                <button type="button" class="btn btn-outline-light btn-sm" x-on:click="$refs.detailsPanel?.scrollIntoView({behavior: 'smooth', block: 'center'}); document.getElementById('dist-fila')?.focus({preventScroll: true})">Más detalles</button>
-            </div>
-        </section>
-    @endif
-
-    <div class="panel rounded-3 p-3 p-md-4 mb-3 dist-board-panel">
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 dist-board-heading">
-            <h2 class="h5 mb-0">Plano de asientos</h2>
-            <div class="d-flex flex-wrap gap-3 small" aria-label="Leyenda de asientos">
-                <span><span class="dist-leyenda dist-leyenda--activo"></span>Activo</span>
-                <span><span class="dist-leyenda dist-leyenda--inactivo"></span>Inactivo</span>
-                <span><span class="dist-leyenda dist-leyenda--protegido"></span>Con historial</span>
-                <span><span class="dist-leyenda dist-leyenda--vacio"></span>Vacío</span>
-                <span><span class="dist-leyenda dist-leyenda--pasillo"></span>Pasillo</span>
-            </div>
         </div>
-
-        <div class="dist-pantalla mb-3"><span class="material-symbols-outlined me-2" aria-hidden="true">movie</span>PANTALLA</div>
-        <div class="dist-board-controls" role="group" aria-label="Controles de visualización del plano">
-            <div class="dist-board-controls__zoom">
-                <button type="button" class="btn btn-outline-light btn-sm" x-on:click="changeZoom(-10)" x-bind:disabled="zoomLevel <= minZoom" aria-label="Alejar plano" title="Alejar">−</button>
-                <output class="dist-zoom-value" aria-live="polite" aria-atomic="true" aria-label="Nivel de zoom" x-text="zoomLevel + '%'">100%</output>
-                <button type="button" class="btn btn-outline-light btn-sm" x-on:click="changeZoom(10)" x-bind:disabled="zoomLevel >= maxZoom" aria-label="Acercar plano" title="Acercar">+</button>
-            </div>
-            <div class="dist-board-controls__actions">
-                <button type="button" class="btn btn-outline-light btn-sm" x-on:click="fitBoard()">Ajustar sala</button>
-                <button type="button" class="btn btn-outline-secondary btn-sm" x-on:click="resetZoom()">Restablecer 100%</button>
-                <button type="button" class="btn btn-outline-light btn-sm" x-on:click="activateTool(activeTool === 'pan' ? 'select' : 'pan')" x-bind:aria-pressed="panMode.toString()" x-bind:class="panMode ? 'dist-pan-active' : ''" aria-label="Activar o desactivar mover el plano" x-text="panMode ? 'Terminar movimiento' : 'Mover plano'">Mover plano</button>
-            </div>
-        </div>
-        <p class="dist-interaction-status small muted mb-2" role="status" aria-live="polite" aria-atomic="true"
-           x-text="toolMessage">
-            Herramienta Seleccionar activa. Elige un asiento para ver o editar sus detalles.
-        </p>
-        <div class="dist-grid-wrap" x-ref="boardViewport" x-bind:class="panMode ? 'dist-grid-wrap--panning' : ''" x-on:pointerdown="startPan($event)" x-on:pointermove="movePan($event)" x-on:pointerup="endPan($event)" x-on:pointercancel="endPan($event)" x-on:lostpointercapture="endPan($event)" x-on:click.capture="blockPanClick($event)" tabindex="0" aria-label="Plano desplazable de asientos. Usa dos dedos para ampliar o reducir; activa Mover plano para arrastrarlo con un dedo.">
-            <table class="dist-grid" x-ref="boardTable" x-bind:style="'zoom: ' + zoomLevel + '%'" aria-label="Distribución visual de asientos de {{ $this->sala->nombre }}">
-                <thead><tr><th scope="col" class="dist-fila-label">Fila</th>
-                    @foreach ($distribucion['columnas'] as $columna)
-                        <th scope="col">{{ $columna }}</th>
-                        @if (!$loop->last)<th scope="col" class="dist-pasillo-header" aria-label="Pasillo después de {{ $columna }}"></th>@endif
-                    @endforeach
-                </tr></thead>
-                <tbody>
-                    @foreach ($distribucion['filas'] as $filaPlano)
-                    <tr wire:key="fila-{{ $filaPlano }}">
-                        <th scope="row" class="dist-fila-label">{{ $filaPlano }}</th>
-                        @foreach ($distribucion['columnas'] as $columna)
-                            @php $celda = $distribucion['asientos'][$filaPlano][$columna] ?? null; @endphp
-                            <td>
-                                <button type="button"
-                                    class="dist-asiento {{ $celda ? ($celda['activo'] ? 'dist-asiento--activo' : 'dist-asiento--inactivo') : 'dist-asiento--vacio' }} {{ $celda && $celda['protegido'] ? 'dist-asiento--protegido' : '' }} {{ !$modoSeleccionMultiple && $asientoSeleccionadoId === ($celda['id'] ?? null) ? 'dist-asiento--seleccionado' : '' }} "
-                                    x-on:click.prevent.stop="handleCellClick('{{ $filaPlano }}', {{ $columna }}, {{ $celda ? (int) $celda['id'] : 'null' }}, {{ $celda && $celda['protegido'] ? 'true' : 'false' }})"
-                                    @if ($modoSeleccionMultiple && $celda)
-                                        x-bind:class="{ 'dist-asiento--seleccionado': isSelected({{ (int) $celda['id'] }}) }"
-                                    @endif
-                                    wire:key="celda-{{ $filaPlano }}-{{ $columna }}"
-                                    aria-label="{{ $celda ? 'Asiento ' . $filaPlano . '-' . $columna . ', ' . ucfirst(strtolower($celda['tipo'])) . ', ' . ($celda['activo'] ? 'activo' : 'inactivo') . ($celda['protegido'] ? ', protegido por historial' : '') : 'Agregar asiento ' . $filaPlano . '-' . $columna }}"
-                                    @if ($modoSeleccionMultiple)
-                                        @if ($celda)
-                                            x-bind:aria-pressed="isSelected({{ (int) $celda['id'] }}) ? 'true' : 'false'"
-                                        @else
-                                            aria-pressed="false"
-                                        @endif
-                                    @else
-                                        aria-pressed="{{ $celda && $asientoSeleccionadoId === ($celda['id'] ?? null) ? 'true' : 'false' }}"
-                                    @endif
-                                    title="{{ $celda ? $filaPlano . '-' . $columna . ' · ' . ucfirst(strtolower($celda['tipo'])) . ($celda['protegido'] ? ' · Con historial' : '') : 'Agregar asiento ' . $filaPlano . '-' . $columna }}">
-                                    @if ($celda)
-                                        @if ($celda['protegido'])<span class="material-symbols-outlined dist-lock" aria-hidden="true">lock</span>@endif
-                                        {{ $columna }}
-                                    @else
-                                        <span class="material-symbols-outlined" aria-hidden="true">add</span>
-                                    @endif
-                                </button>
-                            </td>
-                            @if (!$loop->last)
-                                @php $tienePasillo = $distribucion['pasillos'][$filaPlano][$columna] ?? false; @endphp
-                                <td class="dist-pasillo-cell {{ $tienePasillo ? 'dist-pasillo-cell--activo' : '' }}">
-                                    <button type="button"
-                                        class="dist-pasillo"
-                                        wire:click="alternarPasillo('{{ $filaPlano }}', {{ $columna }})"
-                                        wire:key="pasillo-{{ $filaPlano }}-{{ $columna }}"
-                                        aria-label="{{ $tienePasillo ? 'Quitar' : 'Agregar' }} pasillo entre {{ $filaPlano }}-{{ $columna }} y {{ $filaPlano }}-{{ $columna + 1 }}"
-                                        title="{{ $tienePasillo ? 'Quitar pasillo' : 'Agregar pasillo' }}">
-                                        @if ($tienePasillo)<span aria-hidden="true">↔</span>@else<span aria-hidden="true">·</span>@endif
-                                    </button>
-                                </td>
-                            @endif
-                        @endforeach
-                    </tr>
-                    @if (!$loop->last)
-                        @php
-                            $filaSiguiente = $distribucion['filas'][$loop->index + 1];
-                            $tienePasilloTransversal = $distribucion['pasillos_transversales'][$filaPlano][$filaSiguiente] ?? false;
-                        @endphp
-                        <tr wire:key="separador-transversal-{{ $filaPlano }}-{{ $filaSiguiente }}" class="dist-pasillo-transversal-row">
-                            <td colspan="{{ count($distribucion['columnas']) * 2 }}" class="text-center py-1">
-                                <button type="button"
-                                    class="dist-pasillo dist-pasillo-transversal {{ $tienePasilloTransversal ? 'dist-pasillo-cell--activo' : '' }}"
-                                    wire:click="alternarPasilloTransversal('{{ $filaPlano }}', '{{ $filaSiguiente }}')"
-                                    aria-label="{{ $tienePasilloTransversal ? 'Quitar' : 'Agregar' }} pasillo transversal entre las filas {{ $filaPlano }} y {{ $filaSiguiente }}"
-                                    title="{{ $tienePasilloTransversal ? 'Quitar pasillo transversal' : 'Agregar pasillo transversal' }}">
-                                    {{ $tienePasilloTransversal ? '↕ Pasillo transversal' : '· Agregar pasillo transversal' }}
-                                </button>
-                            </td>
-                        </tr>
-                    @endif
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        @if ($distribucion['fuera_de_rango'] > 0)
-            <div class="alert alert-info mt-3 mb-0" role="status">Hay {{ $distribucion['fuera_de_rango'] }} asiento(s) con número superior a 30. Se conservan en los datos; esta vista muestra hasta la columna 30 para mantener el plano manejable.</div>
-        @endif
-        <p class="small muted mt-3 mb-0">Usa los separadores entre números para los pasillos longitudinales y los separadores entre filas para los transversales. Los cambios de pasillos quedan en el borrador hasta guardar la distribución; no se renumeran ni modifican asientos. Los asientos con candado están vinculados a funciones y conservan su identidad histórica. La selección de una celda vacía permite crear un asiento nuevo.</p>
     </div>
-
-        </main>
-        <aside class="dist-workspace__inspector" aria-label="Resumen y propiedades">
-    <div class="row g-3 mb-3 dist-summary-grid" aria-label="Resumen de distribución">
-        <div class="col-6 col-md-4 col-xl-2"><div class="panel rounded-3 p-3 h-100"><div class="muted small">Asientos registrados</div><div class="h3 mb-0">{{ $distribucion['total'] }}</div></div></div>
-        <div class="col-6 col-md-4 col-xl-2"><div class="panel rounded-3 p-3 h-100"><div class="muted small">Activos</div><div class="h3 mb-0">{{ $distribucion['activos'] }}</div></div></div>
-        <div class="col-6 col-md-4 col-xl-2"><div class="panel rounded-3 p-3 h-100"><div class="muted small">Inactivos</div><div class="h3 mb-0">{{ $distribucion['inactivos'] }}</div></div></div>
-        <div class="col-6 col-md-4 col-xl-2"><div class="panel rounded-3 p-3 h-100"><div class="muted small">Con historial</div><div class="h3 mb-0">{{ $distribucion['protegidos'] }}</div></div></div>
-        <div class="col-6 col-md-4 col-xl-2"><div class="panel rounded-3 p-3 h-100"><div class="muted small">Pasillos</div><div class="h3 mb-0">{{ $distribucion['total_pasillos'] }}</div></div></div>
-        <div class="col-6 col-md-4 col-xl-2"><div class="panel rounded-3 p-3 h-100"><div class="muted small">Capacidad informativa</div><div class="h3 mb-0">{{ $this->sala->capacidad ?? 'No especificada' }}</div></div></div>
-    </div>
-
-    <details class="panel rounded-3 mb-3 dist-section dist-validation-panel dist-foldable-panel" aria-labelledby="dist-validacion-titulo" @if ($distribucion['advertencias'] !== []) open @endif>
-        <summary class="dist-foldable-heading">
-            <span id="dist-validacion-titulo" class="h6 mb-0">Validación de la distribución</span>
-            @if ($distribucion['advertencias'] === [])
-                <span class="badge text-bg-success">Sin huecos internos detectados</span>
-            @else
-                <span class="badge text-bg-warning">{{ count($distribucion['advertencias']) }} advertencia(s)</span>
-            @endif
-        </summary>
-        <div class="dist-foldable-content p-3 pt-0">
-        @if ($distribucion['advertencias'] === [])
-            <p class="small muted mb-0 mt-2">No se detectaron posiciones vacías entre el primer y el último asiento de cada fila. Esta revisión es informativa y no bloquea la edición.</p>
-        @else
-            <ul class="small mb-0 mt-2">
-                @foreach ($distribucion['advertencias'] as $indice => $advertencia)
-                    <li wire:key="advertencia-distribucion-{{ $advertencia['fila'] }}-{{ $indice }}">{{ $advertencia['mensaje'] }}</li>
-                @endforeach
-            </ul>
-            <p class="small muted mb-0 mt-2">Los huecos pueden ser intencionales. Esta revisión no modifica ni renumera asientos.</p>
-        @endif
-        </div>
-    </details>
-
-    <div class="panel rounded-3 p-3 p-md-4 dist-details-panel" x-ref="detailsPanel" id="dist-details-panel">
-        <h2 class="h5 mb-3">{{ $seleccion ? 'Asiento ' . $seleccion['fila'] . '-' . $seleccion['numero'] : 'Nueva ubicación' }}</h2>
-        @if ($seleccion && $seleccion['protegido'])
-            <div class="alert alert-warning" role="status">Este asiento tiene historial de funciones. No se puede cambiar su tipo ni su ubicación, ni eliminarlo; solo su disponibilidad administrativa.</div>
-        @elseif ($seleccion)
-            <div class="alert alert-info" role="status">Este asiento no tiene historial asociado: puedes cambiar su fila, número, tipo o disponibilidad, o eliminarlo.</div>
-        @endif
-        <form wire:submit="guardarAsiento">
-            <div class="row g-3">
-                <div class="col-6 col-md-3">
-                    <label for="dist-fila" class="form-label">Fila</label>
-                    <input id="dist-fila" type="text" maxlength="5" class="form-control @error('fila') is-invalid @enderror" wire:model="fila" @disabled($seleccion && $seleccion['protegido']) required>
-                    @error('fila')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-6 col-md-3">
-                    <label for="dist-numero" class="form-label">Número</label>
-                    <input id="dist-numero" type="number" min="1" max="65535" class="form-control @error('numero') is-invalid @enderror" wire:model="numero" @disabled($seleccion && $seleccion['protegido']) required>
-                    @error('numero')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-12 col-md-3">
-                    <label for="dist-tipo" class="form-label">Tipo de asiento</label>
-                    <select id="dist-tipo" class="form-select @error('tipo') is-invalid @enderror" wire:model="tipo" @disabled($seleccion && $seleccion['protegido']) required>
-                        @foreach ($tipoOptions as $valor => $etiqueta)<option value="{{ $valor }}">{{ $etiqueta }}</option>@endforeach
-                    </select>
-                    @error('tipo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-                <div class="col-12 col-md-3">
-                    <label for="dist-activo" class="form-label">Disponibilidad</label>
-                    <select id="dist-activo" class="form-select @error('activo') is-invalid @enderror" wire:model="activo" required>
-                        @foreach ($activoOptions as $valor => $etiqueta)<option value="{{ $valor }}">{{ $etiqueta }}</option>@endforeach
-                    </select>
-                    @error('activo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-            </div>
-            <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
-                @if ($seleccion && $seleccion['id'] > 0)
-                    <a href="{{ route('admin.asientos.edit', $seleccion['id']) }}" class="btn btn-outline-light">Ver ficha completa</a>
-                    @if (!$seleccion['protegido'])
-                        <button type="button" class="btn btn-outline-danger" wire:click="eliminarAsiento" wire:loading.attr="disabled" wire:target="eliminarAsiento" aria-label="Quitar asiento del borrador">Quitar del borrador</button>
-                    @endif
-                @endif
-                <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="guardarAsiento">
-                    <span wire:loading.remove wire:target="guardarAsiento">{{ $seleccion ? 'Aplicar al borrador' : 'Agregar al borrador' }}</span>
-                    <span wire:loading wire:target="guardarAsiento">Aplicando…</span>
-                </button>
-            </div>
-            @error('asientoSeleccionadoId')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
-        </form>
-    </div>
-
-        </aside>
-    </div>
-
 </div>

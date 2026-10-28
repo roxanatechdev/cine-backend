@@ -1,685 +1,1366 @@
-/* CINEPREMIUM — capa visual exclusiva del editor de distribución.
-   No modifica el layout global ni las reglas de negocio. */
-.dist-page-shell {
-    --dist-bg: #0b1220; --dist-surface: #111d2c; --dist-panel: #1b2a3d;
-    --dist-border: #34465b; --dist-seat-standard: #6485a8; --dist-seat-preferential: #9460d4;
-    --dist-seat-accessible: #159a83; --dist-focus: #2f86e5; --dist-primary: #e9b44c;
-    --dist-success: #2da77a; --dist-warning: #d9a441; --dist-danger: #e16b72;
-    --dist-text: #f3f6fa; --dist-muted: #afc0d3; color: var(--dist-text);
-}
-.dist-page-shell .dist-page-header { padding: clamp(.25rem, 1vw, .75rem) 0 .5rem; }
-.dist-page-shell .dist-page-header h1 { color: var(--dist-text); letter-spacing: -.025em; }
-.dist-page-shell .dist-page-header p, .dist-page-shell .muted, .dist-editor-shell .muted { color: var(--dist-muted) !important; }
-.dist-editor-shell { display: flex; flex-direction: column; gap: .85rem; min-width: 0; }
-.dist-editor-shell > .panel, .dist-editor-shell .dist-summary-grid .panel {
-    color: var(--dist-text); background: var(--dist-panel); border: 1px solid var(--dist-border);
-    border-radius: 1rem !important; box-shadow: 0 8px 24px rgba(0,0,0,.12);
-}
-.dist-editor-shell .dist-save-panel { position: relative; background: linear-gradient(120deg,var(--dist-surface),var(--dist-panel)); border-color: rgba(233,180,76,.42); }
-.dist-editor-shell .dist-save-panel .fw-semibold { color: var(--dist-text); font-size: 1rem; }
-.dist-editor-shell .dist-summary-grid { row-gap: .75rem; }
-.dist-editor-shell .dist-summary-grid .panel { background: var(--dist-surface); border-radius: .8rem !important; box-shadow: none; }
-.dist-editor-shell .dist-summary-grid .h3 { color: var(--dist-text); font-variant-numeric: tabular-nums; }
-.dist-editor-shell .dist-section h2, .dist-editor-shell .dist-board-panel h2, .dist-editor-shell .dist-details-panel h2 { color: var(--dist-text); letter-spacing: -.015em; }
-.dist-editor-shell .dist-validation-panel { border-left: 3px solid var(--dist-success); }
-.dist-editor-shell .dist-create-panel, .dist-editor-shell .dist-bulk-panel, .dist-editor-shell .dist-details-panel { background: var(--dist-surface); }
-.dist-editor-shell .dist-board-panel { padding: clamp(.85rem,2vw,1.5rem) !important; overflow: hidden; background: var(--dist-surface); }
-.dist-editor-shell .dist-board-heading { align-items: flex-start !important; }
-.dist-editor-shell .dist-grid-wrap {
-    max-width: 100%; overflow: auto; overscroll-behavior: contain; padding: .75rem .25rem 1rem;
-    border: 1px solid rgba(175,192,211,.16); border-radius: .85rem;
-    background: radial-gradient(ellipse at center top,rgba(47,134,229,.06),transparent 70%),var(--dist-bg);
-    scrollbar-color: #52677e #111d2c; scrollbar-width: thin;
-}
-.dist-editor-shell .dist-grid-wrap:focus-visible { outline: 2px solid var(--dist-focus); outline-offset: 3px; }
-.dist-editor-shell .dist-grid { border-spacing: 6px; }
-.dist-editor-shell .dist-grid th { color: var(--dist-muted); font-size: .74rem; }
-.dist-editor-shell .dist-grid .dist-fila-label { background: var(--dist-bg); }
-.dist-editor-shell .dist-pantalla {
-    max-width: 760px; margin: 0 auto 1.5rem; padding: .75rem 1rem; color: var(--dist-muted);
-    border: 1px solid rgba(175,192,211,.28); border-radius: 50% 50% .65rem .65rem / 100% 100% .65rem .65rem;
-    background: linear-gradient(180deg,rgba(47,134,229,.09),transparent); box-shadow: 0 12px 30px rgba(47,134,229,.08);
-    letter-spacing: .18em; font-size: .8rem; font-weight: 700; text-align: center;
-}
-.dist-editor-shell .dist-asiento {
-    position: relative; width: 38px; min-width: 38px; height: 38px; padding: 0;
-    border: 1px solid rgba(175,192,211,.24); border-radius: 9px 9px 5px 5px;
-    color: var(--dist-text); font-size: .74rem; font-weight: 700; touch-action: manipulation;
-    transition: transform .12s ease,box-shadow .12s ease,border-color .12s ease;
-}
-.dist-editor-shell .dist-asiento--activo { background: color-mix(in srgb,var(--dist-seat-standard) 28%,var(--dist-bg)); border-color: var(--dist-seat-standard); color: #eaf2fb; }
-.dist-editor-shell .dist-asiento--inactivo { background: #283545; border-color: #718096; color: #c5d0dc; }
-.dist-editor-shell .dist-asiento--vacio { background: transparent; border: 1px dashed #53657a; color: #91a4b8; }
-.dist-editor-shell .dist-asiento--protegido { box-shadow: inset 0 -3px 0 var(--dist-warning); }
-.dist-editor-shell .dist-grid .dist-asiento.dist-asiento--seleccionado { border: 2px solid var(--dist-primary); outline: 2px solid rgba(233,180,76,.22); outline-offset: 1px; box-shadow: 0 0 0 2px rgba(233,180,76,.12); }
-.dist-editor-shell .dist-lock { color: var(--dist-warning); background: var(--dist-bg); }
-.dist-editor-shell .dist-leyenda { display: inline-block; width: 11px; height: 11px; border-radius: 4px; margin-right: 5px; vertical-align: middle; }
-.dist-editor-shell .dist-leyenda--activo { background: var(--dist-seat-standard); }
-.dist-editor-shell .dist-leyenda--inactivo { background: #718096; }
-.dist-editor-shell .dist-leyenda--protegido { background: var(--dist-warning); }
-.dist-editor-shell .dist-leyenda--vacio { border: 1px dashed #91a4b8; }
-.dist-editor-shell .dist-leyenda--pasillo { background: var(--dist-primary); }
-.dist-editor-shell .dist-pasillo { min-height: 38px; color: var(--dist-muted); }
-.dist-editor-shell .dist-pasillo:hover, .dist-editor-shell .dist-pasillo-cell--activo .dist-pasillo,
-.dist-editor-shell .dist-pasillo-transversal:hover, .dist-editor-shell .dist-pasillo-transversal.dist-pasillo-cell--activo { background: rgba(233,180,76,.12); color: var(--dist-primary); }
-.dist-editor-shell .form-control, .dist-editor-shell .form-select { min-height: 42px; color: var(--dist-text); background-color: #101a28; border-color: #40536a; }
-.dist-editor-shell .form-control:focus, .dist-editor-shell .form-select:focus { border-color: var(--dist-focus); box-shadow: 0 0 0 .2rem rgba(47,134,229,.2); }
-.dist-editor-shell .form-control:disabled, .dist-editor-shell .form-select:disabled { color: #91a0b0; background-color: #202b39; }
-.dist-editor-shell .btn { min-height: 40px; }
-.dist-editor-shell .btn-primary { color: #18202a; background: var(--dist-primary); border-color: var(--dist-primary); font-weight: 700; }
-.dist-editor-shell .btn-primary:hover, .dist-editor-shell .btn-primary:focus-visible { color: #111820; background: #f3c96f; border-color: #f3c96f; }
-.dist-editor-shell .alert { border-radius: .75rem; }
-.dist-editor-shell .dist-details-panel { scroll-margin-top: 1rem; }
-.dist-editor-shell button:focus-visible, .dist-editor-shell a:focus-visible { outline: 2px solid var(--dist-focus); outline-offset: 3px; }
-@media (hover:hover) { .dist-editor-shell .dist-asiento:hover { transform: translateY(-1px); } }
-@media (max-width:767.98px) {
-    .dist-page-shell .dist-page-header h1 { font-size: clamp(1.35rem,5vw,1.8rem); }
-    .dist-editor-shell { gap: .65rem; }
-    .dist-editor-shell > .panel, .dist-editor-shell .dist-summary-grid .panel { border-radius: .8rem !important; }
-    .dist-editor-shell .dist-save-panel > .d-flex { align-items: stretch !important; }
-    .dist-editor-shell .dist-save-panel .d-flex.flex-wrap.gap-2 { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)); }
-    .dist-editor-shell .dist-save-panel .btn { width: 100%; padding-inline: .5rem; font-size: .88rem; }
-    .dist-editor-shell .dist-board-panel { padding: .7rem !important; }
-    .dist-editor-shell .dist-board-heading { flex-direction: column; gap: .85rem !important; }
-    .dist-editor-shell .dist-board-heading [aria-label="Leyenda de asientos"] { gap: .5rem .8rem !important; }
-    .dist-editor-shell .dist-grid { border-spacing: 4px; }
-    .dist-editor-shell .dist-grid th { min-width: 30px; padding: .15rem; }
-    .dist-editor-shell .dist-asiento { width: 36px; min-width: 36px; height: 40px; border-radius: 8px 8px 5px 5px; }
-    .dist-editor-shell .dist-grid-wrap { margin-inline: -.15rem; max-height: 65vh; }
-    .dist-editor-shell .dist-pantalla { margin-bottom: 1rem; font-size: .72rem; }
-}
-@media (prefers-reduced-motion:reduce) { .dist-editor-shell .dist-asiento { transition: none; } }
+/* ==========================================================================
+   CINEPRIME · Editor de distribución de salas
+   Capa visual exclusiva. TODAS las reglas cuelgan de #editor-distribucion-asientos.
+   Usa los tokens --cm-* de estilos-globales-proyecto.css; los colores propios
+   (tipos de asiento, estados, pasillos) se definen solo dentro del ID raíz.
 
-/* Etapa 3: paneles auxiliares plegables para priorizar el plano de la sala. */
-.dist-editor-shell .dist-organizable-panel > .dist-panel-summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: .75rem;
-    cursor: pointer;
-    list-style: none;
-    color: var(--dist-text);
+   Usos de !important (documentados):
+   - [x-cloak] y prefers-reduced-motion: deben ganar a reglas de componente.
+   ========================================================================== */
+
+#editor-distribucion-asientos {
+    --d-bg: var(--cm-surface-container-lowest, #0c0e17);
+    --d-panel: var(--cm-surface-container, #1d1f29);
+    --d-panel-hi: var(--cm-surface-container-high, #282933);
+    --d-panel-top: var(--cm-surface-container-highest, #32343e);
+    --d-border: rgba(255, 255, 255, 0.09);
+    --d-border-strong: rgba(255, 255, 255, 0.2);
+    --d-text: var(--cm-on-surface, #e1e1ef);
+    --d-muted: #b9bbcd;
+    --d-accent: var(--cm-primary-container, #e50914);
+    --d-accent-soft: rgba(229, 9, 20, 0.16);
+    --d-gold: var(--cm-tertiary, #e9c349);
+    --d-focus: #ffe088;
+    --d-ok: #4ccf9a;
+    --d-warn: #f0c35a;
+    --d-danger: #ff8a93;
+
+    /* Tipos de asiento: distintos por forma e icono además del color */
+    --d-seat-estandar: #7f9fc4;
+    --d-seat-preferencial: #e9c349;
+    --d-seat-accesible: #7bd0ff;
+    --d-seat-inactivo: #6b6e80;
+    --d-pasillo: #e9c349;
+
+    color: var(--d-text);
+    font-family: var(--cm-font-body, 'Montserrat', sans-serif);
+    color-scheme: dark;
+    min-width: 0;
 }
-.dist-editor-shell .dist-organizable-panel > .dist-panel-summary::-webkit-details-marker { display: none; }
-.dist-editor-shell .dist-organizable-panel > .dist-panel-summary::after {
-    content: '＋';
+
+#editor-distribucion-asientos *,
+#editor-distribucion-asientos *::before,
+#editor-distribucion-asientos *::after {
+    box-sizing: border-box;
+}
+
+#editor-distribucion-asientos [x-cloak] {
+    display: none !important;
+    /* Alpine: evita el parpadeo antes de inicializar */
+}
+
+#editor-distribucion-asientos .dist-app {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+#editor-distribucion-asientos .dist-muted {
+    color: var(--d-muted);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+}
+
+#editor-distribucion-asientos .dist-panel-title {
+    margin: 0 0 0.75rem;
+    font-family: var(--cm-font-display, 'Bebas Neue', sans-serif);
+    font-size: 1.35rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--d-text);
+}
+
+/* ---------- Botones ---------- */
+#editor-distribucion-asientos .dist-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 1px solid var(--dist-border);
-    border-radius: .5rem;
-    color: var(--dist-primary);
+    gap: 0.4rem;
+    min-height: 40px;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--d-border-strong);
+    border-radius: 0.5rem;
+    background: var(--d-panel-hi);
+    color: var(--d-text);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#editor-distribucion-asientos .dist-btn:hover:not(:disabled) {
+    background: var(--d-panel-top);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: #fff;
+}
+
+#editor-distribucion-asientos .dist-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-style: dashed;
+}
+
+#editor-distribucion-asientos .dist-btn--sm {
+    min-height: 36px;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.8125rem;
+}
+
+#editor-distribucion-asientos .dist-btn--icon {
+    min-width: 40px;
+    padding: 0.4rem;
+    font-size: 1.05rem;
+}
+
+#editor-distribucion-asientos .dist-btn--primary {
+    background: var(--d-accent);
+    border-color: var(--d-accent);
+    color: #fff;
+    box-shadow: var(--cm-glow-primary, 0 0 20px rgba(229, 9, 20, 0.35));
+}
+
+#editor-distribucion-asientos .dist-btn--primary:hover:not(:disabled) {
+    background: #ff2430;
+    border-color: #ff2430;
+}
+
+#editor-distribucion-asientos .dist-btn--primary:disabled {
+    box-shadow: none;
+    background: #5a1b20;
+    border-color: #7d2a30;
+    color: #e9c9cc;
+}
+
+#editor-distribucion-asientos .dist-btn--danger {
+    color: var(--d-danger);
+    border-color: rgba(255, 138, 147, 0.45);
+}
+
+#editor-distribucion-asientos .dist-btn--danger-solid {
+    background: #b3000c;
+    border-color: #b3000c;
+    color: #fff;
+}
+
+#editor-distribucion-asientos .dist-btn.is-current {
+    border-color: var(--d-gold);
+    box-shadow: inset 0 0 0 1px var(--d-gold);
+}
+
+#editor-distribucion-asientos :is(button, a, input, select, summary, [tabindex]):focus-visible {
+    outline: 3px solid var(--d-focus);
+    outline-offset: 2px;
+    position: relative;
+    z-index: 2;
+}
+
+/* ---------- Barra de guardado ---------- */
+#editor-distribucion-asientos .dist-savebar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    padding: 0.8rem 1rem;
+    background: linear-gradient(120deg, var(--d-panel), var(--d-panel-hi));
+    border: 1px solid var(--d-border);
+    border-left: 4px solid var(--d-accent);
+    border-radius: 0.75rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+#editor-distribucion-asientos .dist-savebar__info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+#editor-distribucion-asientos .dist-savebar__dot {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--d-ok);
+    background: var(--d-ok);
+}
+
+#editor-distribucion-asientos .dist-savebar__dot.is-dirty {
+    border-radius: 3px;
+    /* forma distinta además del color */
+    border-color: var(--d-gold);
+    background: var(--d-gold);
+}
+
+#editor-distribucion-asientos .dist-savebar__title {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+#editor-distribucion-asientos .dist-savebar__sub {
+    color: var(--d-muted);
+    font-size: 0.78rem;
+}
+
+#editor-distribucion-asientos .dist-savebar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#editor-distribucion-asientos .dist-savebar__alert {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 138, 147, 0.5);
+    background: rgba(179, 0, 12, 0.18);
+    color: #ffd7da;
+    font-size: 0.85rem;
+}
+
+/* ---------- Área de trabajo ---------- */
+#editor-distribucion-asientos .dist-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'canvas' 'tools' 'inspector';
+    gap: 1rem;
+    align-items: start;
+    min-width: 0;
+}
+
+#editor-distribucion-asientos .dist-tools {
+    grid-area: tools;
+}
+
+#editor-distribucion-asientos .dist-canvas {
+    grid-area: canvas;
+}
+
+#editor-distribucion-asientos .dist-inspector {
+    grid-area: inspector;
+}
+
+#editor-distribucion-asientos .dist-tools,
+#editor-distribucion-asientos .dist-canvas,
+#editor-distribucion-asientos .dist-inspector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+#editor-distribucion-asientos .dist-tools {
+    padding: 0.9rem;
+    background: var(--d-panel);
+    border: 1px solid var(--d-border);
+    border-radius: 0.75rem;
+}
+
+#editor-distribucion-asientos .dist-tools .dist-panel-title {
+    margin-bottom: 0.25rem;
+}
+
+#editor-distribucion-asientos .dist-toolbar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.4rem;
+}
+
+#editor-distribucion-asientos .dist-tool {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 42px;
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--d-border);
+    border-radius: 0.5rem;
+    background: var(--d-panel-hi);
+    color: var(--d-text);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+#editor-distribucion-asientos .dist-tool .bi {
     font-size: 1.1rem;
     flex: 0 0 auto;
 }
-.dist-editor-shell .dist-organizable-panel[open] > .dist-panel-summary { margin-bottom: .75rem; }
-.dist-editor-shell .dist-organizable-panel[open] > .dist-panel-summary::after { content: '−'; }
-.dist-editor-shell .dist-organizable-panel > .dist-panel-summary:focus-visible {
-    outline: 2px solid var(--dist-focus);
-    outline-offset: 4px;
-    border-radius: .25rem;
-}
-.dist-editor-shell .dist-create-panel:not([open]) > .dist-panel-summary,
-.dist-editor-shell .dist-validation-panel:not([open]) > .dist-panel-summary { margin-bottom: 0; }
 
-/* Etapa 3 · organización de paneles auxiliares */
-.dist-editor-shell .dist-foldable-panel { overflow: hidden; }
-.dist-editor-shell .dist-foldable-panel > .dist-foldable-heading {
+#editor-distribucion-asientos .dist-tool:hover {
+    background: var(--d-panel-top);
+    border-color: var(--d-border-strong);
+}
+
+#editor-distribucion-asientos .dist-tool.is-active {
+    background: var(--d-accent-soft);
+    border-color: var(--d-accent);
+    box-shadow: inset 3px 0 0 var(--d-accent);
+    color: #fff;
+}
+
+#editor-distribucion-asientos .dist-tool-options {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0.7rem;
+    border: 1px dashed var(--d-border-strong);
+    border-radius: 0.5rem;
+}
+
+#editor-distribucion-asientos .dist-tool-options label,
+#editor-distribucion-asientos .dist-field label {
+    color: var(--d-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+#editor-distribucion-asientos .dist-tool-extra {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+/* ---------- Campos ---------- */
+#editor-distribucion-asientos .dist-field {
+    display: grid;
+    gap: 0.3rem;
+}
+
+#editor-distribucion-asientos :is(.dist-field input, .dist-field select, .dist-tool-options select) {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--d-border-strong);
+    border-radius: 0.5rem;
+    background: var(--d-bg);
+    color: var(--d-text);
+    font: inherit;
+    font-size: 0.875rem;
+}
+
+#editor-distribucion-asientos :is(.dist-field input, .dist-field select):disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--d-panel-hi);
+}
+
+#editor-distribucion-asientos .dist-check {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: .65rem 1rem;
-    padding: 1rem 1.1rem;
+    gap: 0.55rem;
+    min-height: 40px;
+    font-size: 0.875rem;
     cursor: pointer;
-    list-style: none;
-    color: var(--dist-text);
 }
-.dist-editor-shell .dist-foldable-panel > .dist-foldable-heading::-webkit-details-marker { display: none; }
-.dist-editor-shell .dist-foldable-panel > .dist-foldable-heading::after {
-    content: '+';
+
+#editor-distribucion-asientos .dist-check input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--d-accent);
+}
+
+/* ---------- Plantilla ---------- */
+#editor-distribucion-asientos .dist-template {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(229, 9, 20, 0.12), var(--d-panel) 55%);
+    border: 1px dashed var(--d-accent);
+    border-radius: 0.75rem;
+}
+
+#editor-distribucion-asientos .dist-template__body {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 460px;
+}
+
+#editor-distribucion-asientos .dist-template__preview {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* ---------- Barra contextual ---------- */
+#editor-distribucion-asientos .dist-contextbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: linear-gradient(110deg, var(--d-panel-hi), var(--d-panel));
+    border: 1px solid var(--d-border);
+    border-left: 4px solid var(--d-gold);
+    border-radius: 0.75rem;
+}
+
+#editor-distribucion-asientos .dist-contextbar__identity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+#editor-distribucion-asientos .dist-contextbar__identity>.bi {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.8rem;
-    height: 1.8rem;
+    width: 2.4rem;
+    height: 2.4rem;
     flex: 0 0 auto;
-    border: 1px solid var(--dist-border);
-    border-radius: .5rem;
-    color: var(--dist-primary);
-    font-size: 1.2rem;
-    line-height: 1;
-}
-.dist-editor-shell .dist-foldable-panel[open] > .dist-foldable-heading { border-bottom: 1px solid var(--dist-border); }
-.dist-editor-shell .dist-foldable-panel[open] > .dist-foldable-heading::after { content: '−'; }
-.dist-editor-shell .dist-foldable-panel > .dist-foldable-heading:focus-visible {
-    outline: 2px solid var(--dist-focus);
-    outline-offset: -3px;
-}
-.dist-editor-shell .dist-foldable-content { padding-top: 1rem; }
-.dist-editor-shell .dist-foldable-heading .h5,
-.dist-editor-shell .dist-foldable-heading .h6 { color: inherit; }
-@media (max-width: 767.98px) {
-    .dist-editor-shell .dist-foldable-panel > .dist-foldable-heading { padding: .85rem; }
-    .dist-editor-shell .dist-foldable-heading > .small { flex: 1 1 100%; order: 3; }
-    .dist-editor-shell .dist-foldable-content { padding-inline: .85rem !important; }
+    border-radius: 0.6rem;
+    background: rgba(233, 195, 73, 0.14);
+    color: var(--d-gold);
+    font-size: 1.1rem;
 }
 
-
-/* Etapa 3 — herramientas de selección agrupadas en una barra contextual. */
-.dist-editor-shell .dist-toolstrip {
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
-    padding: .9rem 1rem; border: 1px solid var(--dist-border); border-radius: .9rem;
-    background: linear-gradient(110deg, var(--dist-surface), var(--dist-panel));
-}
-.dist-editor-shell .dist-toolstrip__intro { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem 1rem; min-width: 0; }
-.dist-editor-shell .dist-toolstrip__intro h2 { color: var(--dist-text); }
-.dist-editor-shell .dist-toolstrip__actions { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
-.dist-editor-shell .dist-toolstrip__count { padding: .45rem .7rem; border: 1px solid var(--dist-border); border-radius: .6rem; color: var(--dist-text); background: rgba(11,18,32,.5); font-size: .9rem; }
-.dist-editor-shell .dist-toolstrip .btn-warning { color: #20202a; background: var(--dist-primary); border-color: var(--dist-primary); font-weight: 700; }
-@media (max-width: 767.98px) {
-    .dist-editor-shell .dist-toolstrip { align-items: stretch; padding: .8rem; }
-    .dist-editor-shell .dist-toolstrip__intro { justify-content: space-between; }
-    .dist-editor-shell .dist-toolstrip__actions { display: grid; grid-template-columns: minmax(0,1fr); }
-    .dist-editor-shell .dist-toolstrip__actions .btn { width: 100%; }
+#editor-distribucion-asientos .dist-contextbar__title {
+    font-weight: 700;
+    font-size: 0.95rem;
 }
 
-
-/* Etapa 4.1 — zoom del plano y ajuste a la zona visible. */
-.dist-editor-shell .dist-board-controls {
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .65rem;
-    margin: 0 0 .75rem; padding: .65rem .75rem; border: 1px solid var(--dist-border);
-    border-radius: .75rem; background: rgba(11,18,32,.55);
-}
-.dist-editor-shell .dist-board-controls__zoom,
-.dist-editor-shell .dist-board-controls__actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-.dist-editor-shell .dist-board-controls .btn { min-width: 2.5rem; min-height: 38px; }
-.dist-editor-shell .dist-board-controls .btn:disabled { opacity: .4; cursor: not-allowed; }
-.dist-editor-shell .dist-zoom-value { min-width: 3.8rem; text-align: center; color: var(--dist-text); font-size: .9rem; font-variant-numeric: tabular-nums; }
-.dist-editor-shell .dist-grid-wrap { overflow: auto; max-width: 100%; }
-.dist-editor-shell .dist-grid { width: max-content; margin-inline: auto; }
-@media (max-width: 767.98px) {
-    .dist-editor-shell .dist-board-controls { align-items: stretch; }
-    .dist-editor-shell .dist-board-controls__zoom, .dist-editor-shell .dist-board-controls__actions { justify-content: center; }
-    .dist-editor-shell .dist-board-controls__actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
-    .dist-editor-shell .dist-board-controls__actions .btn { width: 100%; }
+#editor-distribucion-asientos .dist-contextbar__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
 }
 
+#editor-distribucion-asientos .dist-contextbar__label {
+    color: var(--d-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-left: 0.4rem;
+}
 
-/* Etapa 4.2 — desplazamiento explícito del plano sin interferir con la selección. */
-.dist-editor-shell .dist-grid-wrap--panning {
+/* ---------- Pizarra ---------- */
+#editor-distribucion-asientos .dist-board {
+    padding: clamp(0.75rem, 2vw, 1.25rem);
+    background: var(--d-panel);
+    border: 1px solid var(--d-border);
+    border-radius: 0.75rem;
+    min-width: 0;
+}
+
+#editor-distribucion-asientos .dist-board__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1.25rem;
+    margin-bottom: 0.9rem;
+}
+
+#editor-distribucion-asientos .dist-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.75rem;
+    color: var(--d-muted);
+}
+
+#editor-distribucion-asientos .dist-legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+#editor-distribucion-asientos .dist-pantalla {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    max-width: 760px;
+    margin: 0 auto 1rem;
+    padding: 0.6rem 1rem;
+    color: var(--d-muted);
+    border: 1px solid var(--d-border-strong);
+    border-radius: 50% 50% 0.65rem 0.65rem / 100% 100% 0.65rem 0.65rem;
+    background: linear-gradient(180deg, rgba(229, 9, 20, 0.16), transparent);
+    box-shadow: 0 12px 30px rgba(229, 9, 20, 0.12);
+    letter-spacing: 0.3em;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+#editor-distribucion-asientos .dist-stage {
+    position: relative;
+}
+
+#editor-distribucion-asientos .dist-zoombar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+}
+
+#editor-distribucion-asientos .dist-zoombar__value {
+    min-width: 3.6rem;
+    text-align: center;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+}
+
+#editor-distribucion-asientos .dist-grid-wrap {
+    display: flex;
+    max-width: 100%;
+    max-height: min(70vh, 720px);
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 0.75rem 0.4rem 1rem;
+    background:
+        radial-gradient(ellipse at 50% 0%, rgba(229, 9, 20, 0.09), transparent 65%),
+        var(--d-bg);
+    border: 1px solid var(--d-border);
+    border-radius: 0.75rem;
+    scrollbar-color: #52566a var(--d-bg);
+    scrollbar-width: thin;
+}
+
+#editor-distribucion-asientos .dist-grid-wrap.is-panning {
     cursor: grab;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
 }
-.dist-editor-shell .dist-grid-wrap--panning:active { cursor: grabbing; }
-.dist-editor-shell .dist-board-controls .dist-pan-active {
-    color: #0B1220;
-    background: var(--dist-primary);
-    border-color: var(--dist-primary);
-    font-weight: 700;
+
+#editor-distribucion-asientos .dist-grid-wrap.is-panning:active {
+    cursor: grabbing;
 }
 
-
-/* Etapa 4.3 — gesto de pellizco controlado por el editor en dispositivos táctiles. */
 @media (max-width: 1023.98px) {
-    .dist-editor-shell .dist-grid-wrap {
-        /* Los gestos del plano se gestionan en el editor: pellizco para zoom,
-           y arrastre de un dedo únicamente con Mover plano activado. */
+
+    /* Gestos del plano gestionados por el editor: pellizco = zoom; un dedo solo con «Mover pizarra». */
+    #editor-distribucion-asientos .dist-grid-wrap {
         touch-action: none;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
     }
 }
 
-/* Etapa 4.4 — objetivos táctiles y navegación móvil más predecibles. */
-@media (max-width: 767.98px) {
-    .dist-editor-shell .dist-board-controls {
-        gap: .6rem;
-        padding: .65rem;
-    }
-    .dist-editor-shell .dist-board-controls__zoom,
-    .dist-editor-shell .dist-board-controls__actions { gap: .5rem; }
-    .dist-editor-shell .dist-board-controls .btn {
-        min-height: 44px;
-        padding: .55rem .65rem;
-        touch-action: manipulation;
-    }
-    .dist-editor-shell .dist-board-controls__zoom .btn {
-        min-width: 44px;
-        font-size: 1.05rem;
-    }
-    .dist-editor-shell .dist-zoom-value { min-width: 3.5rem; }
-    .dist-editor-shell .dist-grid-wrap {
-        /* Evita transferir los gestos del plano al zoom general del navegador. */
-        overscroll-behavior-x: contain;
-        overscroll-behavior-y: contain;
-    }
+#editor-distribucion-asientos .dist-zoom {
+    margin-inline: auto;
+    flex: 0 0 auto;
 }
 
-@media (hover: none) and (pointer: coarse) {
-    .dist-editor-shell .dist-asiento { touch-action: manipulation; }
+#editor-distribucion-asientos .dist-grid {
+    border-collapse: separate;
+    border-spacing: 5px;
 }
 
+#editor-distribucion-asientos .dist-grid th {
+    padding: 0.1rem;
+    color: var(--d-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-align: center;
+}
 
-/* Etapa 4.5 — accesibilidad aislada al editor de distribución. */
-/* El foco por teclado es visible sin depender del color de selección. */
-.dist-page-shell .dist-editor-shell :where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
-    outline: 3px solid #f6d365;
-    outline-offset: 3px;
-    box-shadow: 0 0 0 2px #0b1220;
+#editor-distribucion-asientos .dist-grid td {
+    padding: 0;
+    text-align: center;
+}
+
+#editor-distribucion-asientos .dist-fila-label {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: var(--d-bg);
+}
+
+#editor-distribucion-asientos .dist-fila-btn {
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0 0.3rem;
+    border: 1px solid transparent;
+    border-radius: 0.4rem;
+    background: transparent;
+    color: var(--d-text);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#editor-distribucion-asientos .dist-fila-btn:hover {
+    border-color: var(--d-border-strong);
+    background: var(--d-panel-hi);
+}
+
+/* ---------- Butacas ---------- */
+#editor-distribucion-asientos .dist-asiento {
     position: relative;
-    z-index: 2;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 2px solid var(--d-seat-estandar);
+    border-radius: 11px 11px 5px 5px;
+    /* estándar: respaldo redondeado */
+    background: color-mix(in srgb, var(--d-seat-estandar) 24%, var(--d-bg));
+    box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.3);
+    color: #eef3fa;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    touch-action: manipulation;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease;
 }
 
-/* Estados deshabilitados distinguibles por forma y cursor, además del color. */
-.dist-page-shell .dist-editor-shell button:disabled,
-.dist-page-shell .dist-editor-shell button[aria-disabled="true"] {
-    cursor: not-allowed;
-    opacity: .58;
-    filter: grayscale(.35);
-}
-
-/* Selección con contorno marcado para no comunicar el estado solo mediante color. */
-.dist-page-shell .dist-editor-shell .dist-asiento--seleccionado {
-    outline: 3px double #f6d365;
-    outline-offset: 2px;
-    box-shadow: 0 0 0 2px #0b1220;
-}
-
-/* El candado y el borde refuerzan la indicación de asiento protegido. */
-.dist-page-shell .dist-editor-shell .dist-asiento--protegido {
+#editor-distribucion-asientos .dist-asiento.t-PREFERENCIAL {
+    border-color: var(--d-seat-preferencial);
     border-style: double;
     border-width: 3px;
-}
-.dist-page-shell .dist-editor-shell .dist-lock {
-    display: inline-flex;
-    vertical-align: middle;
+    border-radius: 3px 3px 12px 12px;
+    /* preferencial: respaldo recto, base ancha */
+    background: color-mix(in srgb, var(--d-seat-preferencial) 20%, var(--d-bg));
 }
 
-/* Evita transiciones animadas innecesarias para usuarios que las reducen. */
-@media (prefers-reduced-motion: reduce) {
-    .dist-page-shell .dist-editor-shell *,
-    .dist-page-shell .dist-editor-shell *::before,
-    .dist-page-shell .dist-editor-shell *::after {
-        scroll-behavior: auto !important;
-        animation-duration: .01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: .01ms !important;
+#editor-distribucion-asientos .dist-asiento.t-ACCESIBLE {
+    border-color: var(--d-seat-accesible);
+    border-radius: 50% 50% 6px 6px;
+    /* accesible: respaldo circular */
+    background: color-mix(in srgb, var(--d-seat-accesible) 20%, var(--d-bg));
+}
+
+#editor-distribucion-asientos .dist-asiento.is-inactivo {
+    border-color: var(--d-seat-inactivo);
+    background: repeating-linear-gradient(135deg, #2a2c38 0 5px, #1d1f29 5px 10px);
+    color: #aeb0c0;
+}
+
+#editor-distribucion-asientos .dist-asiento.is-inactivo .dist-num {
+    text-decoration: line-through;
+}
+
+#editor-distribucion-asientos .dist-asiento.is-protegido {
+    border-width: 3px;
+    border-style: dashed;
+    /* borde distinto + candado */
+}
+
+#editor-distribucion-asientos .dist-asiento.is-vacio {
+    border: 1px dashed #565a70;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+    color: #7c8096;
+}
+
+#editor-distribucion-asientos .dist-asiento .dist-ico {
+    font-size: 0.62rem;
+    margin-bottom: 1px;
+}
+
+#editor-distribucion-asientos .dist-asiento .dist-lock {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--d-bg);
+    border: 1px solid var(--d-warn);
+    color: var(--d-warn);
+    font-size: 0.55rem;
+}
+
+#editor-distribucion-asientos .dist-asiento.is-sel {
+    outline: 3px double var(--d-focus);
+    outline-offset: 2px;
+    box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.3), 0 0 0 2px var(--d-bg);
+}
+
+#editor-distribucion-asientos .dist-asiento.is-sel::after {
+    content: '✓';
+    position: absolute;
+    top: -7px;
+    left: -7px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--d-focus);
+    color: #241a00;
+    font-size: 0.6rem;
+    line-height: 16px;
+}
+
+#editor-distribucion-asientos .dist-app[data-tool='create'] .dist-asiento.is-vacio:hover {
+    border-color: var(--d-accent);
+    color: #fff;
+    background: var(--d-accent-soft);
+}
+
+#editor-distribucion-asientos .dist-app:is([data-tool='brush-type'], [data-tool='brush-activo'], [data-tool='create'], [data-tool='erase']) .dist-asiento {
+    cursor: crosshair;
+}
+
+#editor-distribucion-asientos .dist-app[data-tool='pan'] .dist-asiento {
+    cursor: grab;
+}
+
+@media (hover: hover) {
+    #editor-distribucion-asientos .dist-asiento:hover {
+        transform: translateY(-1px);
     }
 }
 
-/* Mensajes de estado con separación estable y lectura clara. */
-.dist-page-shell .dist-interaction-status {
-    line-height: 1.5;
-    min-height: 1.5em;
+/* Leyenda: versiones compactas de las butacas */
+#editor-distribucion-asientos .dist-legend .dist-asiento {
+    width: 22px;
+    min-width: 22px;
+    height: 22px;
+    border-width: 2px;
+    cursor: default;
+    pointer-events: none;
+    transform: none;
 }
 
-/* ================================================================
-   CINEPREMIUM · Renovación visual · Etapa 2: estructura de pizarra
-   Alcance aislado: solo afecta a la página del editor de distribución.
-   No altera reglas de negocio ni activa peticiones Livewire adicionales.
-   ================================================================ */
-.dist-page-shell {
-    --dist-bg: #0c1220;
-    --dist-panel: #111d2d;
-    --dist-panel-raised: #18283b;
-    --dist-border: #2a4058;
-    --dist-text: #edf3fb;
-    --dist-muted: #a6b7ca;
-    color: var(--dist-text);
+#editor-distribucion-asientos .dist-legend .dist-asiento .dist-ico {
+    font-size: 0.55rem;
+    margin: 0;
 }
 
-.dist-page-shell .dist-page-header {
-    max-width: 100%;
-    margin-bottom: 1rem !important;
+#editor-distribucion-asientos .dist-legend .dist-asiento .dist-lock {
+    width: 12px;
+    height: 12px;
+    top: -5px;
+    right: -5px;
+    font-size: 0.45rem;
 }
 
-.dist-page-shell .dist-page-header h1 {
-    letter-spacing: -.025em;
-    font-weight: 650;
+#editor-distribucion-asientos .dist-legend .dist-ley--pasillo {
+    display: inline-block;
+    width: 6px;
+    height: 20px;
+    border-radius: 3px;
+    background: var(--d-pasillo);
 }
 
-.dist-page-shell .dist-editor-shell {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1rem;
-    align-items: start;
+/* ---------- Pasillos ---------- */
+#editor-distribucion-asientos .dist-pasillo-cell {
+    width: 12px;
 }
 
-.dist-page-shell .dist-editor-shell > .dist-save-panel,
-.dist-page-shell .dist-editor-shell > .dist-summary-grid,
-.dist-page-shell .dist-editor-shell > .dist-validation-panel {
-    grid-column: 1 / -1;
-    margin-bottom: 0 !important;
+#editor-distribucion-asientos .dist-pasillo-cell.is-activo {
+    width: 26px;
 }
 
-.dist-page-shell .dist-editor-shell > .dist-create-panel,
-.dist-page-shell .dist-editor-shell > .dist-toolstrip,
-.dist-page-shell .dist-editor-shell > .dist-bulk-panel,
-.dist-page-shell .dist-editor-shell > .dist-board-panel,
-.dist-page-shell .dist-editor-shell > .dist-details-panel {
-    min-width: 0;
-    margin-bottom: 0 !important;
-}
-
-.dist-page-shell .dist-editor-shell .panel,
-.dist-page-shell .dist-editor-shell .dist-toolstrip {
-    background: var(--dist-panel) !important;
-    border: 1px solid var(--dist-border) !important;
-    border-radius: 14px !important;
-    color: var(--dist-text);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
-}
-
-.dist-page-shell .dist-editor-shell .dist-save-panel {
-    background: var(--dist-panel-raised) !important;
-    border-color: #6b5630 !important;
-}
-
-.dist-page-shell .dist-editor-shell .dist-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .75rem;
-}
-
-.dist-page-shell .dist-editor-shell .dist-summary-grid > div {
-    width: auto;
+#editor-distribucion-asientos .dist-pasillo-header {
+    width: 12px;
     padding: 0;
 }
 
-.dist-page-shell .dist-editor-shell .dist-summary-grid .panel {
-    height: 100%;
-    padding: .9rem 1rem !important;
-    background: var(--dist-panel) !important;
+#editor-distribucion-asientos .dist-pasillo {
+    width: 100%;
+    min-height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 0.35rem;
+    background: transparent;
+    color: #5f6378;
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
 }
 
-.dist-page-shell .dist-editor-shell .dist-summary-grid .h3 {
-    font-size: 1.45rem;
-    line-height: 1.2;
+#editor-distribucion-asientos .dist-pasillo:hover {
+    background: rgba(233, 195, 73, 0.14);
+    color: var(--d-pasillo);
+}
+
+#editor-distribucion-asientos .dist-pasillo.is-activo {
+    background: repeating-linear-gradient(90deg, rgba(233, 195, 73, 0.2) 0 3px, transparent 3px 6px);
+    color: var(--d-pasillo);
+    font-weight: 700;
+}
+
+#editor-distribucion-asientos .dist-pasillo-transversal {
+    min-height: 26px;
+    padding: 0 0.75rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px dashed transparent;
+}
+
+#editor-distribucion-asientos .dist-pasillo-transversal:hover {
+    border-color: var(--d-pasillo);
+}
+
+#editor-distribucion-asientos .dist-pasillo-transversal.is-activo {
+    border: 1px solid var(--d-pasillo);
+}
+
+/* ---------- Estado y mensajes ---------- */
+#editor-distribucion-asientos .dist-interaction-status {
+    margin: 0.7rem 0 0.4rem;
+    padding: 0.55rem 0.8rem;
+    border-left: 3px solid var(--d-gold);
+    border-radius: 0.25rem;
+    background: rgba(12, 14, 23, 0.55);
+    color: var(--d-muted);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    min-height: 2.4em;
+}
+
+#editor-distribucion-asientos .dist-board__help {
+    margin: 0;
+}
+
+#editor-distribucion-asientos .dist-statusbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1.5rem;
+    padding: 0.7rem 1rem;
+    background: var(--d-panel);
+    border: 1px solid var(--d-border);
+    border-radius: 0.75rem;
+    font-size: 0.8125rem;
+}
+
+#editor-distribucion-asientos .dist-statusbar__counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    color: var(--d-muted);
+}
+
+#editor-distribucion-asientos .dist-statusbar__counts strong {
+    color: var(--d-text);
     font-variant-numeric: tabular-nums;
 }
 
-.dist-page-shell .dist-editor-shell .dist-board-panel {
-    background: #0e1929 !important;
+#editor-distribucion-asientos .dist-capacity {
+    flex: 1 1 260px;
+    max-width: 420px;
+}
+
+#editor-distribucion-asientos .dist-capacity__text {
+    margin-bottom: 0.3rem;
+    color: var(--d-muted);
+}
+
+#editor-distribucion-asientos .dist-capacity__text.is-over {
+    color: var(--d-warn);
+    font-weight: 600;
+}
+
+#editor-distribucion-asientos .dist-capacity__bar {
+    height: 8px;
     overflow: hidden;
+    border-radius: 4px;
+    background: var(--d-bg);
+    border: 1px solid var(--d-border);
 }
 
-.dist-page-shell .dist-editor-shell .dist-board-heading {
-    align-items: flex-start;
+#editor-distribucion-asientos .dist-capacity__fill {
+    height: 100%;
+    background: var(--d-ok);
+    transition: width 0.2s ease;
 }
 
-.dist-page-shell .dist-editor-shell .dist-grid-wrap {
-    background-color: #091322;
-    border: 1px solid #20334a;
-    border-radius: 12px;
+#editor-distribucion-asientos .dist-capacity__fill.is-over {
+    background: repeating-linear-gradient(45deg, var(--d-warn) 0 6px, #b88a1e 6px 12px);
 }
 
-.dist-page-shell .dist-editor-shell .dist-details-panel {
-    background: var(--dist-panel) !important;
-}
-
-.dist-page-shell .dist-editor-shell .dist-foldable-heading {
-    min-height: 3.25rem;
-    gap: .75rem;
-}
-
-.dist-page-shell .dist-editor-shell .dist-foldable-content {
-    color: var(--dist-muted);
-}
-
-.dist-page-shell .dist-editor-shell .form-control,
-.dist-page-shell .dist-editor-shell .form-select {
-    background-color: #0d1928;
-    border-color: #344a63;
-    color: var(--dist-text);
-}
-
-.dist-page-shell .dist-editor-shell .form-control:focus,
-.dist-page-shell .dist-editor-shell .form-select:focus {
-    border-color: #78a9d5;
-    box-shadow: 0 0 0 .2rem rgb(120 169 213 / 18%);
-}
-
-.dist-page-shell .dist-editor-shell .muted,
-.dist-page-shell .dist-editor-shell .small.muted {
-    color: var(--dist-muted) !important;
-}
-
-@media (min-width: 576px) {
-    .dist-page-shell .dist-editor-shell .dist-summary-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-}
-
-/* En pantallas amplias, el tablero ocupa el centro; herramientas y ficha quedan a los lados. */
-@media (min-width: 1280px) {
-    .dist-page-shell .dist-editor-shell {
-        grid-template-columns: minmax(205px,  .78fr) minmax(420px, 2fr) minmax(245px, .9fr);
-        gap: 1rem;
-    }
-
-    .dist-page-shell .dist-editor-shell > .dist-create-panel {
-        grid-column: 1;
-        grid-row: 4;
-    }
-
-    .dist-page-shell .dist-editor-shell > .dist-toolstrip {
-        grid-column: 1;
-        grid-row: 5;
-    }
-
-    .dist-page-shell .dist-editor-shell > .dist-bulk-panel {
-        grid-column: 1;
-        grid-row: 6;
-    }
-
-    .dist-page-shell .dist-editor-shell > .dist-board-panel {
-        grid-column: 2;
-        grid-row: 4 / span 3;
-    }
-
-    .dist-page-shell .dist-editor-shell > .dist-details-panel {
-        grid-column: 3;
-        grid-row: 4 / span 3;
-        position: sticky;
-        top: 1rem;
-    }
-
-    .dist-page-shell .dist-editor-shell .dist-summary-grid {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
-}
-
-/* Tableta: tablero primero y paneles secundarios plegables debajo. */
-@media (min-width: 768px) and (max-width: 1279.98px) {
-    .dist-page-shell .dist-editor-shell > .dist-board-panel { grid-column: 1 / -1; grid-row: 5; }
-    .dist-page-shell .dist-editor-shell > .dist-details-panel { grid-column: 1 / -1; grid-row: 6; }
-    .dist-page-shell .dist-editor-shell > .dist-toolstrip { grid-column: 1 / -1; }
-}
-
-@media (max-width: 767.98px) {
-    .dist-page-shell .dist-editor-shell { gap: .75rem; }
-    .dist-page-shell .dist-page-header h1 { font-size: 1.45rem; }
-    .dist-page-shell .dist-editor-shell .dist-summary-grid { gap: .5rem; }
-    .dist-page-shell .dist-editor-shell .dist-summary-grid .panel { padding: .75rem !important; }
-    .dist-page-shell .dist-editor-shell .dist-board-panel { padding: .85rem !important; }
-    .dist-page-shell .dist-editor-shell .dist-board-heading { gap: .75rem; }
-}
-
-
-/* Etapa 3 — herramientas y pinceles persistentes de la pizarra. */
-.dist-editor-shell .dist-toolstrip__tools { gap: .5rem; }
-.dist-editor-shell .dist-toolstrip__tools .btn { min-height: 40px; }
-.dist-editor-shell .dist-toolstrip .dist-tool-active {
-    color: #111827;
-    background: var(--dist-primary);
-    border-color: var(--dist-primary);
-    box-shadow: 0 0 0 2px rgba(233,180,76,.2);
-    font-weight: 700;
-}
-.dist-editor-shell .dist-tool-message {
-    padding: .65rem .8rem;
-    border-left: 3px solid var(--dist-primary);
-    border-radius: .25rem;
-    color: var(--dist-muted);
-    background: rgba(11,18,32,.42);
-}
-.dist-editor-shell .dist-grid-wrap:not(.dist-grid-wrap--panning) .dist-asiento { cursor: crosshair; }
-.dist-editor-shell .dist-grid-wrap:not(.dist-grid-wrap--panning) .dist-asiento--vacio { cursor: pointer; }
-@media (max-width: 767.98px) {
-    .dist-editor-shell .dist-toolstrip__tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .dist-editor-shell .dist-toolstrip__tools .btn { width: 100%; white-space: normal; }
-}
-
-
-/* Etapa 4 — barra contextual de acciones para uno o varios asientos. */
-.dist-editor-shell .dist-contextbar {
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .85rem;
-    padding: .85rem 1rem; border: 1px solid var(--dist-border); border-left: 3px solid var(--dist-primary);
-    border-radius: .85rem; background: linear-gradient(110deg, rgba(24, 39, 58, .98), rgba(16, 27, 42, .98));
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
-}
-.dist-editor-shell .dist-contextbar__identity { display: flex; align-items: center; gap: .75rem; min-width: 190px; flex: 1 1 220px; }
-.dist-editor-shell .dist-contextbar__identity h2 { color: var(--dist-text); }
-.dist-editor-shell .dist-contextbar__icon { display: inline-flex; align-items: center; justify-content: center; width: 2.4rem; height: 2.4rem; flex: 0 0 2.4rem; border-radius: .7rem; color: var(--dist-primary); background: rgba(239, 181, 67, .12); font-size: 1.15rem; }
-.dist-editor-shell .dist-contextbar__actions { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; }
-.dist-editor-shell .dist-contextbar__label { color: var(--dist-muted); font-size: .78rem; font-weight: 600; }
-.dist-editor-shell .dist-contextbar__divider { height: 1.6rem; border-left: 1px solid var(--dist-border); margin-inline: .2rem; }
-.dist-editor-shell .dist-contextbar .btn:disabled { opacity: .55; cursor: not-allowed; }
-@media (max-width: 767.98px) {
-    .dist-editor-shell .dist-contextbar { align-items: stretch; padding: .8rem; }
-    .dist-editor-shell .dist-contextbar__identity { flex-basis: 100%; }
-    .dist-editor-shell .dist-contextbar__actions { display: flex; width: 100%; }
-    .dist-editor-shell .dist-contextbar__actions .btn { min-height: 40px; }
-    .dist-editor-shell .dist-contextbar__divider { display: none; }
-}
-
-/* Feedback contextual de la pizarra: aislado del resto del panel administrativo. */
-.dist-editor-shell [x-cloak] { display: none !important; }
-.dist-editor-shell .dist-feedback {
-    display: none;
-    align-items: flex-start;
-    gap: .65rem;
-    padding: .75rem 1rem;
-    border: 1px solid rgba(126, 160, 190, .35);
-    border-radius: .65rem;
-    background: rgba(20, 34, 49, .96);
-    color: var(--dist-text, #edf3fa);
-    box-shadow: 0 .4rem 1.2rem rgba(0, 0, 0, .12);
-}
-.dist-editor-shell .dist-feedback--visible { display: flex; }
-.dist-editor-shell .dist-feedback--success { border-color: rgba(42, 190, 137, .65); }
-.dist-editor-shell .dist-feedback--warning { border-color: rgba(233, 180, 76, .7); }
-.dist-editor-shell .dist-feedback__icon {
-    display: inline-flex;
-    flex: 0 0 1.35rem;
-    width: 1.35rem;
-    height: 1.35rem;
+/* ---------- Inspector ---------- */
+#editor-distribucion-asientos .dist-inspector__toggle {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: rgba(126, 160, 190, .18);
-    font-weight: 700;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    background: var(--d-panel);
+    border: 1px solid var(--d-border);
+    border-radius: 0.75rem;
+    color: var(--d-text);
+    font: inherit;
+    cursor: pointer;
 }
-.dist-editor-shell .dist-feedback--success .dist-feedback__icon { background: rgba(42, 190, 137, .18); }
-.dist-editor-shell .dist-feedback--warning .dist-feedback__icon { background: rgba(233, 180, 76, .18); }
-.dist-editor-shell .dist-feedback__close {
-    margin-left: auto;
-    padding: 0 .25rem;
+
+#editor-distribucion-asientos .dist-inspector__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+@media (max-width: 1279.98px) {
+    #editor-distribucion-asientos .dist-inspector__body.is-plegado {
+        display: none;
+    }
+}
+
+#editor-distribucion-asientos .dist-card {
+    padding: 1rem;
+    background: var(--d-panel);
+    border: 1px solid var(--d-border);
+    border-radius: 0.75rem;
+}
+
+#editor-distribucion-asientos .dist-form {
+    display: grid;
+    gap: 0.75rem;
+}
+
+#editor-distribucion-asientos .dist-form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+}
+
+#editor-distribucion-asientos .dist-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.4rem;
+}
+
+#editor-distribucion-asientos .dist-alert {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+#editor-distribucion-asientos .dist-alert--warn {
+    background: rgba(240, 195, 90, 0.12);
+    border: 1px solid rgba(240, 195, 90, 0.45);
+    color: #f6dc9a;
+}
+
+#editor-distribucion-asientos .dist-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 0;
+}
+
+#editor-distribucion-asientos .dist-summary>div {
+    padding: 0.55rem 0.7rem;
+    background: var(--d-bg);
+    border: 1px solid var(--d-border);
+    border-radius: 0.5rem;
+}
+
+#editor-distribucion-asientos .dist-summary dt {
+    color: var(--d-muted);
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+#editor-distribucion-asientos .dist-summary dd {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+#editor-distribucion-asientos .dist-warnings {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.8rem;
+}
+
+#editor-distribucion-asientos .dist-warnings li {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.5rem;
+    line-height: 1.4;
+}
+
+#editor-distribucion-asientos .dist-warnings .is-aviso {
+    background: rgba(240, 195, 90, 0.1);
+    border: 1px solid rgba(240, 195, 90, 0.35);
+    color: #f6dc9a;
+}
+
+#editor-distribucion-asientos .dist-warnings .is-error {
+    background: rgba(179, 0, 12, 0.2);
+    border: 1px solid rgba(255, 138, 147, 0.5);
+    color: #ffd7da;
+}
+
+/* ---------- Tooltip propio ---------- */
+#editor-distribucion-asientos .dist-tooltip {
+    position: fixed;
+    z-index: 3000;
+    max-width: 280px;
+    padding: 0.4rem 0.65rem;
+    background: var(--d-panel-top);
+    color: var(--d-text);
+    border: 1px solid var(--d-border-strong);
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+}
+
+#editor-distribucion-asientos .dist-tooltip.is-abajo {
+    transform: translate(-50%, 0);
+}
+
+/* ---------- Toasts ---------- */
+#editor-distribucion-asientos .dist-toasts {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 2500;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: min(380px, calc(100vw - 2rem));
+}
+
+#editor-distribucion-asientos .dist-toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.7rem 0.8rem;
+    background: var(--d-panel-top);
+    border: 1px solid var(--d-border-strong);
+    border-left-width: 4px;
+    border-radius: 0.6rem;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+    font-size: 0.82rem;
+    line-height: 1.4;
+}
+
+#editor-distribucion-asientos .dist-toast>span {
+    flex: 1 1 auto;
+}
+
+#editor-distribucion-asientos .dist-toast.is-success {
+    border-left-color: var(--d-ok);
+}
+
+#editor-distribucion-asientos .dist-toast.is-success>.bi {
+    color: var(--d-ok);
+}
+
+#editor-distribucion-asientos .dist-toast.is-info {
+    border-left-color: var(--cm-tertiary-light-blue, #7bd0ff);
+}
+
+#editor-distribucion-asientos .dist-toast.is-info>.bi {
+    color: var(--cm-tertiary-light-blue, #7bd0ff);
+}
+
+#editor-distribucion-asientos .dist-toast.is-warning {
+    border-left-color: var(--d-warn);
+}
+
+#editor-distribucion-asientos .dist-toast.is-warning>.bi {
+    color: var(--d-warn);
+}
+
+#editor-distribucion-asientos .dist-toast.is-error {
+    border-left-color: var(--d-danger);
+}
+
+#editor-distribucion-asientos .dist-toast.is-error>.bi {
+    color: var(--d-danger);
+}
+
+#editor-distribucion-asientos .dist-toast__close {
+    min-width: 32px;
+    min-height: 32px;
+    margin: -0.3rem -0.3rem 0 0;
     border: 0;
     background: transparent;
-    color: inherit;
-    font-size: 1.2rem;
+    color: var(--d-muted);
+    font-size: 1.3rem;
     line-height: 1;
     cursor: pointer;
 }
 
-
-/* Etapa 6 — paneles integrados en el flujo de trabajo de la pizarra. */
-.dist-page-shell .dist-editor-shell {
-    display: block;
-}
-.dist-page-shell .dist-editor-shell > .dist-save-panel,
-.dist-page-shell .dist-editor-shell > .dist-feedback {
-    margin-bottom: .75rem !important;
-}
-.dist-page-shell .dist-editor-shell .dist-workspace {
-    display: grid;
-    grid-template-columns: minmax(205px, .78fr) minmax(420px, 2fr) minmax(250px, .92fr);
-    grid-template-areas: "tools canvas inspector";
-    align-items: start;
-    gap: 1rem;
-    min-width: 0;
-}
-.dist-page-shell .dist-editor-shell .dist-workspace__tools,
-.dist-page-shell .dist-editor-shell .dist-workspace__canvas,
-.dist-page-shell .dist-editor-shell .dist-workspace__inspector {
+/* ---------- Diálogo ---------- */
+#editor-distribucion-asientos .dist-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2800;
     display: flex;
-    flex-direction: column;
-    gap: .85rem;
-    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(5, 6, 12, 0.72);
 }
-.dist-page-shell .dist-editor-shell .dist-workspace__tools { grid-area: tools; }
-.dist-page-shell .dist-editor-shell .dist-workspace__canvas { grid-area: canvas; }
-.dist-page-shell .dist-editor-shell .dist-workspace__inspector { grid-area: inspector; }
-.dist-page-shell .dist-editor-shell .dist-workspace__tools > *,
-.dist-page-shell .dist-editor-shell .dist-workspace__canvas > *,
-.dist-page-shell .dist-editor-shell .dist-workspace__inspector > * {
-    margin-bottom: 0 !important;
-    width: 100%;
+
+#editor-distribucion-asientos .dist-modal {
+    width: min(520px, 100%);
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    padding: 1.25rem;
+    background: var(--d-panel);
+    border: 1px solid var(--d-border-strong);
+    border-radius: 0.9rem;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
 }
-.dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: .6rem;
+
+#editor-distribucion-asientos .dist-modal__title {
+    margin: 0 0 0.6rem;
+    font-family: var(--cm-font-display, 'Bebas Neue', sans-serif);
+    font-size: 1.6rem;
+    font-weight: 400;
+    letter-spacing: 0.05em;
 }
-.dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-summary-grid .panel {
-    padding: .75rem !important;
+
+#editor-distribucion-asientos .dist-modal__text {
+    margin: 0 0 0.6rem;
+    color: var(--d-muted);
+    font-size: 0.9rem;
 }
-.dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-summary-grid .h3 {
-    font-size: 1.25rem;
+
+#editor-distribucion-asientos .dist-modal__list {
+    margin: 0 0 1rem;
+    padding-left: 1.2rem;
+    font-size: 0.875rem;
 }
-.dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-details-panel {
-    position: sticky;
-    top: 1rem;
+
+#editor-distribucion-asientos .dist-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
 }
-.dist-page-shell .dist-editor-shell .dist-workspace__tools .dist-toolstrip__actions {
-    align-items: stretch;
+
+#editor-distribucion-asientos .dist-shortcuts {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0 0 0.75rem;
 }
-.dist-page-shell .dist-editor-shell .dist-workspace__tools .dist-toolstrip__actions .btn {
-    text-align: left;
+
+#editor-distribucion-asientos .dist-shortcuts>div {
+    display: grid;
+    grid-template-columns: minmax(130px, 0.8fr) 1.2fr;
+    gap: 0.75rem;
+    align-items: baseline;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--d-border);
+    font-size: 0.82rem;
 }
-.dist-page-shell .dist-editor-shell .dist-workspace__canvas .dist-contextbar {
-    margin-bottom: 0 !important;
+
+#editor-distribucion-asientos .dist-shortcuts dt {
+    font-weight: 600;
 }
-@media (min-width: 768px) and (max-width: 1279.98px) {
-    .dist-page-shell .dist-editor-shell .dist-workspace {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-        grid-template-areas:
-            "canvas canvas"
-            "tools inspector";
+
+#editor-distribucion-asientos .dist-shortcuts dd {
+    margin: 0;
+    color: var(--d-muted);
+}
+
+#editor-distribucion-asientos kbd {
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--d-border-strong);
+    border-bottom-width: 2px;
+    border-radius: 0.3rem;
+    background: var(--d-bg);
+    color: var(--d-text);
+    font-size: 0.75rem;
+}
+
+/* ---------- Escritorio ancho: herramientas | pizarra | inspector ---------- */
+@media (min-width: 1280px) {
+    #editor-distribucion-asientos .dist-workspace {
+        grid-template-columns: 210px minmax(0, 1fr) 310px;
+        grid-template-areas: 'tools canvas inspector';
     }
-    .dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-details-panel {
-        position: static;
-    }
-}
-@media (max-width: 767.98px) {
-    .dist-page-shell .dist-editor-shell .dist-workspace {
+
+    #editor-distribucion-asientos .dist-toolbar {
         grid-template-columns: minmax(0, 1fr);
-        grid-template-areas:
-            "canvas"
-            "tools"
-            "inspector";
-        gap: .75rem;
     }
-    .dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-details-panel {
+
+    #editor-distribucion-asientos .dist-inspector__toggle {
+        display: none;
+    }
+
+    #editor-distribucion-asientos .dist-tools {
+        position: sticky;
+        top: 5.5rem;
+    }
+}
+
+/* ---------- Móvil: pizarra primero, barra de herramientas inferior fija ---------- */
+@media (max-width: 1024px) {
+    #editor-distribucion-asientos {
+        padding-bottom: 5.5rem;
+    }
+
+    #editor-distribucion-asientos .dist-savebar {
         position: static;
+        padding: 0.75rem;
     }
-    .dist-page-shell .dist-editor-shell .dist-workspace__tools .dist-toolstrip__actions .btn {
+
+    #editor-distribucion-asientos .dist-savebar__actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 44px 44px 1fr 1fr;
+    }
+
+    #editor-distribucion-asientos .dist-btn {
+        min-height: 44px;
+    }
+
+    #editor-distribucion-asientos .dist-btn--sm {
+        min-height: 44px;
+    }
+
+    #editor-distribucion-asientos .dist-btn--icon {
+        min-width: 44px;
+    }
+
+    #editor-distribucion-asientos .dist-zoombar {
+        justify-content: center;
+    }
+
+    #editor-distribucion-asientos .dist-asiento {
+        width: 36px;
+        min-width: 36px;
+        height: 44px;
+    }
+
+    #editor-distribucion-asientos .dist-pasillo {
+        min-height: 44px;
+    }
+
+    #editor-distribucion-asientos .dist-fila-btn {
+        min-width: 32px;
+        min-height: 44px;
+    }
+
+    #editor-distribucion-asientos .dist-grid-wrap {
+        max-height: 65vh;
+    }
+
+    #editor-distribucion-asientos .dist-tools {
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 40;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom, 0px));
+        background: var(--d-panel-top);
+        border: 0;
+        border-top: 1px solid var(--d-border-strong);
+        border-radius: 0;
+        box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+        overflow-x: auto;
+    }
+
+    #editor-distribucion-asientos .dist-tools .dist-panel-title {
+        display: none;
+    }
+
+    #editor-distribucion-asientos .dist-toolbar {
+        display: flex;
+        flex: 0 0 auto;
+        gap: 0.35rem;
+    }
+
+    #editor-distribucion-asientos .dist-tool {
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.2rem;
+        min-width: 66px;
+        min-height: 52px;
+        padding: 0.3rem 0.4rem;
+        font-size: 0.62rem;
         text-align: center;
+        line-height: 1.1;
+    }
+
+    #editor-distribucion-asientos .dist-tool-options {
+        position: fixed;
+        inset: auto 0 calc(66px + env(safe-area-inset-bottom, 0px)) 0;
+        z-index: 39;
+        grid-template-columns: 1fr 1fr;
+        background: var(--d-panel-top);
+        border-radius: 0;
+    }
+
+    #editor-distribucion-asientos .dist-tool-options label {
+        grid-row: 1;
+    }
+
+    #editor-distribucion-asientos .dist-tool-options select {
+        grid-row: 2;
+    }
+
+    #editor-distribucion-asientos .dist-tool-extra {
+        flex: 0 0 auto;
+        flex-wrap: nowrap;
+    }
+
+    #editor-distribucion-asientos .dist-toasts {
+        right: 0.75rem;
+        left: 0.75rem;
+        width: auto;
+        bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    #editor-distribucion-asientos .dist-contextbar__actions .dist-btn {
+        flex: 1 1 auto;
+    }
+
+    #editor-distribucion-asientos .dist-form__row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+
+    #editor-distribucion-asientos *,
+    #editor-distribucion-asientos *::before,
+    #editor-distribucion-asientos *::after {
+        transition-duration: 0.01ms !important;
+        /* debe ganar a las transiciones de componente */
+        animation-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

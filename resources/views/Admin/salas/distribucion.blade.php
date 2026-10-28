@@ -4,19 +4,24 @@
 
 @section('content')
 <div class="dist-page-shell">
-<div class="dist-page-header mb-4">
-    <a href="{{ route('admin.salas.index') }}" class="btn btn-outline-light btn-sm mb-3">← Volver a salas</a>
-    <h1 class="h3 mb-2">Distribución visual de {{ $sala->nombre }}</h1>
-    <p class="muted mb-0">Selecciona una celda para agregar un asiento o selecciona uno existente para administrar su tipo y disponibilidad.</p>
-</div>
+    <div class="dist-page-header mb-3">
+        <a href="{{ route('admin.salas.index') }}" class="btn admin-back-btn btn-sm d-inline-flex align-items-center gap-1 mb-3">
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+            Volver a salas
+        </a>
+        <h1 class="h3 mb-1">Distribución visual de {{ $sala->nombre }}</h1>
+        <p class="text-cm-variant mb-0">Edita el plano como una pizarra: los cambios quedan en un borrador y solo se guardan al pulsar «Guardar distribución».</p>
+    </div>
 
-@if (session('success'))<div class="alert alert-success" role="status">{{ session('success') }}</div>@endif
-@if (session('error'))<div class="alert alert-danger" role="alert">{{ session('error') }}</div>@endif
-
-<livewire:admin.salas.editor-distribucion-sala :sala-id="$sala->id_sala" />
+    <livewire:admin.salas.editor-distribucion-sala :sala-id="$sala->id_sala" />
 </div>
 @endsection
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/admin-distribucion-salas.css') }}?v=17">
+<link rel="stylesheet" href="{{ asset('css/admin-distribucion-salas.css') }}?v=18">
+@endpush
+
+@push('scripts')
+{{-- Debe cargarse antes de @livewireScripts (el layout imprime este stack antes) para registrar Alpine.data en 'alpine:init'. --}}
+<script src="{{ asset('js/editor-distribucion-salas.js') }}?v=18"></script>
 @endpush
