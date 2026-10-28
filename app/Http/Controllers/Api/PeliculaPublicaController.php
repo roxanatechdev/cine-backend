@@ -3,46 +3,110 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Funcion;
 use App\Models\Pelicula;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
-/** Endpoints públicos de solo lectura para el catálogo de CinePrime. */
+/**
+ * Endpoints públicos de solo lectura para la cartelera de CinePrime.
+ * Los datos proceden del catálogo administrado desde el panel de administración.
+ */
 class PeliculaPublicaController extends Controller
 {
-    /** Todas las películas activas; fuente del carrusel principal. */
+    /**
+     * Cartelera semanal: películas activas con funciones PROGRAMADAS
+     * desde el momento actual hasta el final del domingo de esta semana.
+     * Respuesta: { semana: {...}, peliculas: [...] }.
+     */
+    public function cartelera(): JsonResponse
+    {
+        $ahora = now();
+        $inicioSemana = $ahora->copy()->startOfWeek(Carbon::MONDAY);
+        $finSemana = $ahora->copy()->endOfWeek(Carbon::SUNDAY);
+
+        $peliculas = $this->consultaBase()
+            ->orderBy('titulo')
+            ->get();
+
+        $idsPeliculas = $peliculas->pluck('id_pelicula');
+
+        $funcionesPorPelicula = Funcion::query()
+            ->with(['sala:id_sala,nombre'])
+            ->whereIn('id_pelicula', $idsPeliculas)
+            ->where('estado', 'PROGRAMADA')
+            ->where('inicio', '>=', $ahora)
+            ->where('inicio', '<=', $finSemana)
+            ->orderBy('inicio')
+            ->get()
+            ->groupBy('id_pelicula');
+
+        $idsConFunciones = $funcionesPorPelicula->keys();
+        $peliculas = $peliculas->whereIn('id_pelicula', $idsConFunciones)->values();
+
+        $resultado = $peliculas->map(function (Pelicula $pelicula) use ($funcionesPorPelicula) {
+            $datos = $this->formatear($pelicula);
+
+            $funciones = ($funcionesPorPelicula->get($pelicula->id_pelicula) ?? collect())
+                ->map(fn (Funcion $funcion) => [
+                    'id_funcion' => $funcion->id_funcion,
+                    'inicio' => $funcion->inicio?->toIso8601String(),
+                    'fecha' => $funcion->inicio?->toDateString(),
+                    'hora' => $funcion->inicio?->format('H:i'),
+                    'formato' => $funcion->formato,
+                    'precio' => $funcion->precio_base,
+                    'sala' => $funcion->sala?->nombre,
+                ])->values();
+
+            $datos['funciones'] = $funciones;
+            $datos['formatos'] = $funciones->pluck('formato')->unique()->values();
+            return $datos;
+        })->values();
+
+        return response()->json([
+            'semana' => [
+                'desde' => $inicioSemana->toDateString(),
+                'hasta' => $finSemana->toDateString(),
+                'zona_horaria' => config('app.timezone'),
+            ],
+            'peliculas' => $resultado,
+        ]);
+    }
+
+    /** Películas activas con fecha de estreno futura, sin exigir funciones creadas. */
+    public function proximamente(): JsonResponse
+    {
+        $hoy = now()->toDateString();
+
+        $peliculas = $this->consultaBase()
+            ->whereNotNull('fecha_estreno')
+            ->whereDate('fecha_estreno', '>', $hoy)
+            ->orderBy('fecha_estreno')
+            ->orderBy('titulo')
+            ->get()
+            ->map(fn (Pelicula $pelicula) => $this->formatear($pelicula))
+            ->values();
+
+        return response()->json([
+            'semana' => null,
+            'peliculas' => $peliculas,
+        ]);
+    }
+
+    /** Películas activas para carruseles u otras vistas públicas. */
     public function destacadas(): JsonResponse
     {
         $peliculas = $this->consultaBase()
             ->orderByRaw('fecha_estreno IS NULL')
             ->orderBy('fecha_estreno')
             ->orderBy('titulo')
-            ->get();
+            ->get()
+            ->map(fn (Pelicula $pelicula) => $this->formatear($pelicula))
+            ->values();
 
-        return response()->json($peliculas->map(fn (Pelicula $pelicula) => $this->formatear($pelicula))->values());
-    }
-
-    /** Películas estrenadas o sin fecha de estreno registrada. */
-    public function cartelera(): JsonResponse
-    {
-        $hoy = now()->toDateString();
-        $peliculas = $this->consultaBase()
-            ->where(fn (Builder $query) => $query->whereNull('fecha_estreno')->orWhereDate('fecha_estreno', '<=', $hoy))
-            ->orderBy('titulo')->get();
-
-        return response()->json($peliculas->map(fn (Pelicula $pelicula) => $this->formatear($pelicula))->values());
-    }
-
-    /** Películas activas con fecha de estreno posterior a hoy. */
-    public function proximamente(): JsonResponse
-    {
-        $hoy = now()->toDateString();
-        $peliculas = $this->consultaBase()
-            ->whereNotNull('fecha_estreno')
-            ->whereDate('fecha_estreno', '>', $hoy)
-            ->orderBy('fecha_estreno')->orderBy('titulo')->get();
-
-        return response()->json($peliculas->map(fn (Pelicula $pelicula) => $this->formatear($pelicula))->values());
+        return response()->json($peliculas);
     }
 
     private function consultaBase(): Builder
@@ -51,6 +115,13 @@ class PeliculaPublicaController extends Controller
             ->where('estado', 'ACTIVA')
             ->with([
                 'generoPrincipal:id_genero,nombre',
+                'idiomaOriginal:codigo,nombre',
+                'creditos' => function ($query) {
+                    $query->whereIn('rol', ['DIRECTOR', 'ACTOR'])
+                        ->with('persona:id_persona,nombre_completo,nombre_busqueda')
+                        ->orderBy('rol')
+                        ->orderBy('orden');
+                },
                 'multimedia' => function ($query) {
                     $query->where('activo', 1)
                         ->whereIn('tipo', ['POSTER', 'IMAGEN', 'TRAILER'])
@@ -72,15 +143,36 @@ class PeliculaPublicaController extends Controller
             'titulo' => $pelicula->titulo,
             'sinopsis' => $pelicula->sinopsis,
             'genero' => $pelicula->generoPrincipal?->nombre,
+            'idioma' => $pelicula->idiomaOriginal?->nombre,
+            'idioma_original' => $pelicula->idiomaOriginal ? [
+                'codigo' => $pelicula->idiomaOriginal->codigo,
+                'nombre' => $pelicula->idiomaOriginal->nombre,
+            ] : null,
             'clasificacion' => $pelicula->clasificacion,
             'duracion_minutos' => $pelicula->duracion_minutos,
             'fecha_estreno' => $pelicula->fecha_estreno?->toDateString(),
             'estado' => $pelicula->estado,
-            'imagen' => $poster?->url,
+            'imagen' => $poster ? $this->urlMultimedia($poster->url) : null,
             'imagen_alt' => $poster?->texto_alternativo,
-            'trailer' => $trailer?->url,
+            'trailer' => $trailer ? $this->urlMultimedia($trailer->url) : null,
             'rating' => null,
             'formato' => null,
+            'creditos' => $pelicula->creditos->map(fn ($credito) => [
+                'rol' => $credito->rol,
+                'nombre' => $credito->persona?->nombre_completo,
+                'nombre_busqueda' => $credito->persona?->nombre_busqueda,
+            ])->values(),
+            'funciones' => [],
+            'formatos' => [],
         ];
+    }
+
+    private function urlMultimedia(string $ruta): string
+    {
+        if (preg_match('/^https?:\/\//i', $ruta)) {
+            return $ruta;
+        }
+
+        return url(Storage::disk('public')->url($ruta));
     }
 }

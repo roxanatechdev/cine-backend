@@ -21,7 +21,6 @@ use App\Http\Controllers\Admin\PeliculaCreditoAdminController;
 use App\Http\Controllers\Admin\PeliculaMultimediaAdminController;
 use App\Http\Controllers\Admin\PeliculaPaisAdminController;
 use App\Http\Controllers\Admin\PersonaAdminController;
-use App\Http\Controllers\PeliculaController;
 use App\Http\Controllers\Api\PeliculaPublicaController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,7 +28,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/api/peliculas', [PeliculaController::class, 'index']);
+Route::get('/api/peliculas', [PeliculaPublicaController::class, 'cartelera']);
 Route::get('/api/peliculas/cartelera', [PeliculaPublicaController::class, 'cartelera']);
 Route::get('/api/peliculas/proximamente', [PeliculaPublicaController::class, 'proximamente']);
 Route::get('/api/peliculas/destacadas', [PeliculaPublicaController::class, 'destacadas']);
