@@ -9,11 +9,22 @@ use Livewire\Livewire;
 use Tests\TestCase;
 use App\Models\Genero;
 use App\Models\Idioma;
-
+use App\Models\User;
 
 class TablaPeliculasTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $admin = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($admin);
+    }
 
     /**
      * Crea una película para las pruebas.

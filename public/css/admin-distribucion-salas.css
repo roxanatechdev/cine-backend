@@ -1,23 +1,685 @@
-/* Estilos exclusivos del editor de distribución de salas CINEPREMIUM. */
-    .dist-pantalla{max-width:760px;margin:0 auto;padding:.7rem 1rem;text-align:center;letter-spacing:.18em;font-size:.8rem;font-weight:700;color:var(--cm-text-muted,#c2c4d6);border:1px solid var(--cm-border-soft,rgba(255,255,255,.14));border-radius:50% 50% .5rem .5rem / 100% 100% .5rem .5rem;box-shadow:0 8px 18px rgba(229,9,20,.12);}
-    .dist-grid-wrap{overflow-x:auto;padding-bottom:.5rem;}
-    .dist-grid{margin:0 auto;border-collapse:separate;border-spacing:5px;}
-    .dist-grid th{font-size:.72rem;font-weight:600;color:var(--cm-text-muted,#c2c4d6);text-align:center;min-width:35px;padding:.2rem;}
-    .dist-grid .dist-fila-label{position:sticky;left:0;z-index:1;background:var(--cm-bg-surface,#171923);min-width:34px;}
-    .dist-pasillo-header{min-width:8px!important;width:8px;padding:0!important;}
-    .dist-pasillo-cell{width:8px;min-width:8px;padding:0!important;text-align:center;}
-    .dist-pasillo{width:8px;height:30px;padding:0;border:0;border-radius:3px;background:transparent;color:var(--cm-text-muted,#777);font-size:.7rem;line-height:1;opacity:.55;}
-    .dist-pasillo:hover,.dist-pasillo-cell--activo .dist-pasillo{width:12px;background:rgba(229,9,20,.14);color:var(--cm-primary,#e50914);opacity:1;}
-    .dist-pasillo-transversal{width:auto;min-width:180px;height:auto;padding:.2rem .75rem;border:1px dashed var(--cm-border-soft,rgba(255,255,255,.2));border-radius:4px;white-space:nowrap;}
-    .dist-pasillo-transversal:hover,.dist-pasillo-transversal.dist-pasillo-cell--activo{width:auto;background:rgba(229,9,20,.14);color:var(--cm-primary,#e50914);opacity:1;}
-    .dist-leyenda--pasillo{width:4px;background:var(--cm-primary,#e50914);}
-    .dist-asiento{position:relative;width:35px;height:34px;padding:0;border:1px solid transparent;border-radius:7px 7px 4px 4px;font-size:.72rem;font-weight:700;transition:transform .12s;}
-    .dist-asiento:hover{transform:translateY(-1px);}
-    .dist-asiento--activo{background:rgba(25,135,84,.2);border-color:rgba(25,135,84,.8);color:#75e0aa;}
-    .dist-asiento--inactivo{background:rgba(108,117,125,.18);border-color:rgba(108,117,125,.8);color:#b9bdc2;}
-    .dist-asiento--vacio{background:transparent;border:1px dashed var(--cm-border-soft,rgba(255,255,255,.18));color:var(--cm-text-muted,#c2c4d6);}
-    .dist-asiento--protegido{box-shadow:inset 0 -3px 0 #e0a800;}
-    .dist-grid .dist-asiento.dist-asiento--seleccionado{border:2px solid var(--cm-primary,#e50914); outline:none; box-sizing:border-box;}
-    .dist-lock{position:absolute;top:-7px;right:-5px;font-size:12px;color:#e0a800;background:var(--cm-bg-surface,#171923);border-radius:50%;}
-    .dist-leyenda{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle;}
-    .dist-leyenda--activo{background:#198754}.dist-leyenda--inactivo{background:#6c757d}.dist-leyenda--protegido{background:#e0a800}.dist-leyenda--vacio{border:1px dashed #9aa0a6}
+/* CINEPREMIUM — capa visual exclusiva del editor de distribución.
+   No modifica el layout global ni las reglas de negocio. */
+.dist-page-shell {
+    --dist-bg: #0b1220; --dist-surface: #111d2c; --dist-panel: #1b2a3d;
+    --dist-border: #34465b; --dist-seat-standard: #6485a8; --dist-seat-preferential: #9460d4;
+    --dist-seat-accessible: #159a83; --dist-focus: #2f86e5; --dist-primary: #e9b44c;
+    --dist-success: #2da77a; --dist-warning: #d9a441; --dist-danger: #e16b72;
+    --dist-text: #f3f6fa; --dist-muted: #afc0d3; color: var(--dist-text);
+}
+.dist-page-shell .dist-page-header { padding: clamp(.25rem, 1vw, .75rem) 0 .5rem; }
+.dist-page-shell .dist-page-header h1 { color: var(--dist-text); letter-spacing: -.025em; }
+.dist-page-shell .dist-page-header p, .dist-page-shell .muted, .dist-editor-shell .muted { color: var(--dist-muted) !important; }
+.dist-editor-shell { display: flex; flex-direction: column; gap: .85rem; min-width: 0; }
+.dist-editor-shell > .panel, .dist-editor-shell .dist-summary-grid .panel {
+    color: var(--dist-text); background: var(--dist-panel); border: 1px solid var(--dist-border);
+    border-radius: 1rem !important; box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
+.dist-editor-shell .dist-save-panel { position: relative; background: linear-gradient(120deg,var(--dist-surface),var(--dist-panel)); border-color: rgba(233,180,76,.42); }
+.dist-editor-shell .dist-save-panel .fw-semibold { color: var(--dist-text); font-size: 1rem; }
+.dist-editor-shell .dist-summary-grid { row-gap: .75rem; }
+.dist-editor-shell .dist-summary-grid .panel { background: var(--dist-surface); border-radius: .8rem !important; box-shadow: none; }
+.dist-editor-shell .dist-summary-grid .h3 { color: var(--dist-text); font-variant-numeric: tabular-nums; }
+.dist-editor-shell .dist-section h2, .dist-editor-shell .dist-board-panel h2, .dist-editor-shell .dist-details-panel h2 { color: var(--dist-text); letter-spacing: -.015em; }
+.dist-editor-shell .dist-validation-panel { border-left: 3px solid var(--dist-success); }
+.dist-editor-shell .dist-create-panel, .dist-editor-shell .dist-bulk-panel, .dist-editor-shell .dist-details-panel { background: var(--dist-surface); }
+.dist-editor-shell .dist-board-panel { padding: clamp(.85rem,2vw,1.5rem) !important; overflow: hidden; background: var(--dist-surface); }
+.dist-editor-shell .dist-board-heading { align-items: flex-start !important; }
+.dist-editor-shell .dist-grid-wrap {
+    max-width: 100%; overflow: auto; overscroll-behavior: contain; padding: .75rem .25rem 1rem;
+    border: 1px solid rgba(175,192,211,.16); border-radius: .85rem;
+    background: radial-gradient(ellipse at center top,rgba(47,134,229,.06),transparent 70%),var(--dist-bg);
+    scrollbar-color: #52677e #111d2c; scrollbar-width: thin;
+}
+.dist-editor-shell .dist-grid-wrap:focus-visible { outline: 2px solid var(--dist-focus); outline-offset: 3px; }
+.dist-editor-shell .dist-grid { border-spacing: 6px; }
+.dist-editor-shell .dist-grid th { color: var(--dist-muted); font-size: .74rem; }
+.dist-editor-shell .dist-grid .dist-fila-label { background: var(--dist-bg); }
+.dist-editor-shell .dist-pantalla {
+    max-width: 760px; margin: 0 auto 1.5rem; padding: .75rem 1rem; color: var(--dist-muted);
+    border: 1px solid rgba(175,192,211,.28); border-radius: 50% 50% .65rem .65rem / 100% 100% .65rem .65rem;
+    background: linear-gradient(180deg,rgba(47,134,229,.09),transparent); box-shadow: 0 12px 30px rgba(47,134,229,.08);
+    letter-spacing: .18em; font-size: .8rem; font-weight: 700; text-align: center;
+}
+.dist-editor-shell .dist-asiento {
+    position: relative; width: 38px; min-width: 38px; height: 38px; padding: 0;
+    border: 1px solid rgba(175,192,211,.24); border-radius: 9px 9px 5px 5px;
+    color: var(--dist-text); font-size: .74rem; font-weight: 700; touch-action: manipulation;
+    transition: transform .12s ease,box-shadow .12s ease,border-color .12s ease;
+}
+.dist-editor-shell .dist-asiento--activo { background: color-mix(in srgb,var(--dist-seat-standard) 28%,var(--dist-bg)); border-color: var(--dist-seat-standard); color: #eaf2fb; }
+.dist-editor-shell .dist-asiento--inactivo { background: #283545; border-color: #718096; color: #c5d0dc; }
+.dist-editor-shell .dist-asiento--vacio { background: transparent; border: 1px dashed #53657a; color: #91a4b8; }
+.dist-editor-shell .dist-asiento--protegido { box-shadow: inset 0 -3px 0 var(--dist-warning); }
+.dist-editor-shell .dist-grid .dist-asiento.dist-asiento--seleccionado { border: 2px solid var(--dist-primary); outline: 2px solid rgba(233,180,76,.22); outline-offset: 1px; box-shadow: 0 0 0 2px rgba(233,180,76,.12); }
+.dist-editor-shell .dist-lock { color: var(--dist-warning); background: var(--dist-bg); }
+.dist-editor-shell .dist-leyenda { display: inline-block; width: 11px; height: 11px; border-radius: 4px; margin-right: 5px; vertical-align: middle; }
+.dist-editor-shell .dist-leyenda--activo { background: var(--dist-seat-standard); }
+.dist-editor-shell .dist-leyenda--inactivo { background: #718096; }
+.dist-editor-shell .dist-leyenda--protegido { background: var(--dist-warning); }
+.dist-editor-shell .dist-leyenda--vacio { border: 1px dashed #91a4b8; }
+.dist-editor-shell .dist-leyenda--pasillo { background: var(--dist-primary); }
+.dist-editor-shell .dist-pasillo { min-height: 38px; color: var(--dist-muted); }
+.dist-editor-shell .dist-pasillo:hover, .dist-editor-shell .dist-pasillo-cell--activo .dist-pasillo,
+.dist-editor-shell .dist-pasillo-transversal:hover, .dist-editor-shell .dist-pasillo-transversal.dist-pasillo-cell--activo { background: rgba(233,180,76,.12); color: var(--dist-primary); }
+.dist-editor-shell .form-control, .dist-editor-shell .form-select { min-height: 42px; color: var(--dist-text); background-color: #101a28; border-color: #40536a; }
+.dist-editor-shell .form-control:focus, .dist-editor-shell .form-select:focus { border-color: var(--dist-focus); box-shadow: 0 0 0 .2rem rgba(47,134,229,.2); }
+.dist-editor-shell .form-control:disabled, .dist-editor-shell .form-select:disabled { color: #91a0b0; background-color: #202b39; }
+.dist-editor-shell .btn { min-height: 40px; }
+.dist-editor-shell .btn-primary { color: #18202a; background: var(--dist-primary); border-color: var(--dist-primary); font-weight: 700; }
+.dist-editor-shell .btn-primary:hover, .dist-editor-shell .btn-primary:focus-visible { color: #111820; background: #f3c96f; border-color: #f3c96f; }
+.dist-editor-shell .alert { border-radius: .75rem; }
+.dist-editor-shell .dist-details-panel { scroll-margin-top: 1rem; }
+.dist-editor-shell button:focus-visible, .dist-editor-shell a:focus-visible { outline: 2px solid var(--dist-focus); outline-offset: 3px; }
+@media (hover:hover) { .dist-editor-shell .dist-asiento:hover { transform: translateY(-1px); } }
+@media (max-width:767.98px) {
+    .dist-page-shell .dist-page-header h1 { font-size: clamp(1.35rem,5vw,1.8rem); }
+    .dist-editor-shell { gap: .65rem; }
+    .dist-editor-shell > .panel, .dist-editor-shell .dist-summary-grid .panel { border-radius: .8rem !important; }
+    .dist-editor-shell .dist-save-panel > .d-flex { align-items: stretch !important; }
+    .dist-editor-shell .dist-save-panel .d-flex.flex-wrap.gap-2 { display: grid !important; grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .dist-editor-shell .dist-save-panel .btn { width: 100%; padding-inline: .5rem; font-size: .88rem; }
+    .dist-editor-shell .dist-board-panel { padding: .7rem !important; }
+    .dist-editor-shell .dist-board-heading { flex-direction: column; gap: .85rem !important; }
+    .dist-editor-shell .dist-board-heading [aria-label="Leyenda de asientos"] { gap: .5rem .8rem !important; }
+    .dist-editor-shell .dist-grid { border-spacing: 4px; }
+    .dist-editor-shell .dist-grid th { min-width: 30px; padding: .15rem; }
+    .dist-editor-shell .dist-asiento { width: 36px; min-width: 36px; height: 40px; border-radius: 8px 8px 5px 5px; }
+    .dist-editor-shell .dist-grid-wrap { margin-inline: -.15rem; max-height: 65vh; }
+    .dist-editor-shell .dist-pantalla { margin-bottom: 1rem; font-size: .72rem; }
+}
+@media (prefers-reduced-motion:reduce) { .dist-editor-shell .dist-asiento { transition: none; } }
+
+/* Etapa 3: paneles auxiliares plegables para priorizar el plano de la sala. */
+.dist-editor-shell .dist-organizable-panel > .dist-panel-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem;
+    cursor: pointer;
+    list-style: none;
+    color: var(--dist-text);
+}
+.dist-editor-shell .dist-organizable-panel > .dist-panel-summary::-webkit-details-marker { display: none; }
+.dist-editor-shell .dist-organizable-panel > .dist-panel-summary::after {
+    content: '＋';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 1px solid var(--dist-border);
+    border-radius: .5rem;
+    color: var(--dist-primary);
+    font-size: 1.1rem;
+    flex: 0 0 auto;
+}
+.dist-editor-shell .dist-organizable-panel[open] > .dist-panel-summary { margin-bottom: .75rem; }
+.dist-editor-shell .dist-organizable-panel[open] > .dist-panel-summary::after { content: '−'; }
+.dist-editor-shell .dist-organizable-panel > .dist-panel-summary:focus-visible {
+    outline: 2px solid var(--dist-focus);
+    outline-offset: 4px;
+    border-radius: .25rem;
+}
+.dist-editor-shell .dist-create-panel:not([open]) > .dist-panel-summary,
+.dist-editor-shell .dist-validation-panel:not([open]) > .dist-panel-summary { margin-bottom: 0; }
+
+/* Etapa 3 · organización de paneles auxiliares */
+.dist-editor-shell .dist-foldable-panel { overflow: hidden; }
+.dist-editor-shell .dist-foldable-panel > .dist-foldable-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .65rem 1rem;
+    padding: 1rem 1.1rem;
+    cursor: pointer;
+    list-style: none;
+    color: var(--dist-text);
+}
+.dist-editor-shell .dist-foldable-panel > .dist-foldable-heading::-webkit-details-marker { display: none; }
+.dist-editor-shell .dist-foldable-panel > .dist-foldable-heading::after {
+    content: '+';
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    flex: 0 0 auto;
+    border: 1px solid var(--dist-border);
+    border-radius: .5rem;
+    color: var(--dist-primary);
+    font-size: 1.2rem;
+    line-height: 1;
+}
+.dist-editor-shell .dist-foldable-panel[open] > .dist-foldable-heading { border-bottom: 1px solid var(--dist-border); }
+.dist-editor-shell .dist-foldable-panel[open] > .dist-foldable-heading::after { content: '−'; }
+.dist-editor-shell .dist-foldable-panel > .dist-foldable-heading:focus-visible {
+    outline: 2px solid var(--dist-focus);
+    outline-offset: -3px;
+}
+.dist-editor-shell .dist-foldable-content { padding-top: 1rem; }
+.dist-editor-shell .dist-foldable-heading .h5,
+.dist-editor-shell .dist-foldable-heading .h6 { color: inherit; }
+@media (max-width: 767.98px) {
+    .dist-editor-shell .dist-foldable-panel > .dist-foldable-heading { padding: .85rem; }
+    .dist-editor-shell .dist-foldable-heading > .small { flex: 1 1 100%; order: 3; }
+    .dist-editor-shell .dist-foldable-content { padding-inline: .85rem !important; }
+}
+
+
+/* Etapa 3 — herramientas de selección agrupadas en una barra contextual. */
+.dist-editor-shell .dist-toolstrip {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+    padding: .9rem 1rem; border: 1px solid var(--dist-border); border-radius: .9rem;
+    background: linear-gradient(110deg, var(--dist-surface), var(--dist-panel));
+}
+.dist-editor-shell .dist-toolstrip__intro { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem 1rem; min-width: 0; }
+.dist-editor-shell .dist-toolstrip__intro h2 { color: var(--dist-text); }
+.dist-editor-shell .dist-toolstrip__actions { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
+.dist-editor-shell .dist-toolstrip__count { padding: .45rem .7rem; border: 1px solid var(--dist-border); border-radius: .6rem; color: var(--dist-text); background: rgba(11,18,32,.5); font-size: .9rem; }
+.dist-editor-shell .dist-toolstrip .btn-warning { color: #20202a; background: var(--dist-primary); border-color: var(--dist-primary); font-weight: 700; }
+@media (max-width: 767.98px) {
+    .dist-editor-shell .dist-toolstrip { align-items: stretch; padding: .8rem; }
+    .dist-editor-shell .dist-toolstrip__intro { justify-content: space-between; }
+    .dist-editor-shell .dist-toolstrip__actions { display: grid; grid-template-columns: minmax(0,1fr); }
+    .dist-editor-shell .dist-toolstrip__actions .btn { width: 100%; }
+}
+
+
+/* Etapa 4.1 — zoom del plano y ajuste a la zona visible. */
+.dist-editor-shell .dist-board-controls {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .65rem;
+    margin: 0 0 .75rem; padding: .65rem .75rem; border: 1px solid var(--dist-border);
+    border-radius: .75rem; background: rgba(11,18,32,.55);
+}
+.dist-editor-shell .dist-board-controls__zoom,
+.dist-editor-shell .dist-board-controls__actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.dist-editor-shell .dist-board-controls .btn { min-width: 2.5rem; min-height: 38px; }
+.dist-editor-shell .dist-board-controls .btn:disabled { opacity: .4; cursor: not-allowed; }
+.dist-editor-shell .dist-zoom-value { min-width: 3.8rem; text-align: center; color: var(--dist-text); font-size: .9rem; font-variant-numeric: tabular-nums; }
+.dist-editor-shell .dist-grid-wrap { overflow: auto; max-width: 100%; }
+.dist-editor-shell .dist-grid { width: max-content; margin-inline: auto; }
+@media (max-width: 767.98px) {
+    .dist-editor-shell .dist-board-controls { align-items: stretch; }
+    .dist-editor-shell .dist-board-controls__zoom, .dist-editor-shell .dist-board-controls__actions { justify-content: center; }
+    .dist-editor-shell .dist-board-controls__actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .dist-editor-shell .dist-board-controls__actions .btn { width: 100%; }
+}
+
+
+/* Etapa 4.2 — desplazamiento explícito del plano sin interferir con la selección. */
+.dist-editor-shell .dist-grid-wrap--panning {
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.dist-editor-shell .dist-grid-wrap--panning:active { cursor: grabbing; }
+.dist-editor-shell .dist-board-controls .dist-pan-active {
+    color: #0B1220;
+    background: var(--dist-primary);
+    border-color: var(--dist-primary);
+    font-weight: 700;
+}
+
+
+/* Etapa 4.3 — gesto de pellizco controlado por el editor en dispositivos táctiles. */
+@media (max-width: 1023.98px) {
+    .dist-editor-shell .dist-grid-wrap {
+        /* Los gestos del plano se gestionan en el editor: pellizco para zoom,
+           y arrastre de un dedo únicamente con Mover plano activado. */
+        touch-action: none;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+}
+
+/* Etapa 4.4 — objetivos táctiles y navegación móvil más predecibles. */
+@media (max-width: 767.98px) {
+    .dist-editor-shell .dist-board-controls {
+        gap: .6rem;
+        padding: .65rem;
+    }
+    .dist-editor-shell .dist-board-controls__zoom,
+    .dist-editor-shell .dist-board-controls__actions { gap: .5rem; }
+    .dist-editor-shell .dist-board-controls .btn {
+        min-height: 44px;
+        padding: .55rem .65rem;
+        touch-action: manipulation;
+    }
+    .dist-editor-shell .dist-board-controls__zoom .btn {
+        min-width: 44px;
+        font-size: 1.05rem;
+    }
+    .dist-editor-shell .dist-zoom-value { min-width: 3.5rem; }
+    .dist-editor-shell .dist-grid-wrap {
+        /* Evita transferir los gestos del plano al zoom general del navegador. */
+        overscroll-behavior-x: contain;
+        overscroll-behavior-y: contain;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .dist-editor-shell .dist-asiento { touch-action: manipulation; }
+}
+
+
+/* Etapa 4.5 — accesibilidad aislada al editor de distribución. */
+/* El foco por teclado es visible sin depender del color de selección. */
+.dist-page-shell .dist-editor-shell :where(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid #f6d365;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 2px #0b1220;
+    position: relative;
+    z-index: 2;
+}
+
+/* Estados deshabilitados distinguibles por forma y cursor, además del color. */
+.dist-page-shell .dist-editor-shell button:disabled,
+.dist-page-shell .dist-editor-shell button[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: .58;
+    filter: grayscale(.35);
+}
+
+/* Selección con contorno marcado para no comunicar el estado solo mediante color. */
+.dist-page-shell .dist-editor-shell .dist-asiento--seleccionado {
+    outline: 3px double #f6d365;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px #0b1220;
+}
+
+/* El candado y el borde refuerzan la indicación de asiento protegido. */
+.dist-page-shell .dist-editor-shell .dist-asiento--protegido {
+    border-style: double;
+    border-width: 3px;
+}
+.dist-page-shell .dist-editor-shell .dist-lock {
+    display: inline-flex;
+    vertical-align: middle;
+}
+
+/* Evita transiciones animadas innecesarias para usuarios que las reducen. */
+@media (prefers-reduced-motion: reduce) {
+    .dist-page-shell .dist-editor-shell *,
+    .dist-page-shell .dist-editor-shell *::before,
+    .dist-page-shell .dist-editor-shell *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+/* Mensajes de estado con separación estable y lectura clara. */
+.dist-page-shell .dist-interaction-status {
+    line-height: 1.5;
+    min-height: 1.5em;
+}
+
+/* ================================================================
+   CINEPREMIUM · Renovación visual · Etapa 2: estructura de pizarra
+   Alcance aislado: solo afecta a la página del editor de distribución.
+   No altera reglas de negocio ni activa peticiones Livewire adicionales.
+   ================================================================ */
+.dist-page-shell {
+    --dist-bg: #0c1220;
+    --dist-panel: #111d2d;
+    --dist-panel-raised: #18283b;
+    --dist-border: #2a4058;
+    --dist-text: #edf3fb;
+    --dist-muted: #a6b7ca;
+    color: var(--dist-text);
+}
+
+.dist-page-shell .dist-page-header {
+    max-width: 100%;
+    margin-bottom: 1rem !important;
+}
+
+.dist-page-shell .dist-page-header h1 {
+    letter-spacing: -.025em;
+    font-weight: 650;
+}
+
+.dist-page-shell .dist-editor-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.dist-page-shell .dist-editor-shell > .dist-save-panel,
+.dist-page-shell .dist-editor-shell > .dist-summary-grid,
+.dist-page-shell .dist-editor-shell > .dist-validation-panel {
+    grid-column: 1 / -1;
+    margin-bottom: 0 !important;
+}
+
+.dist-page-shell .dist-editor-shell > .dist-create-panel,
+.dist-page-shell .dist-editor-shell > .dist-toolstrip,
+.dist-page-shell .dist-editor-shell > .dist-bulk-panel,
+.dist-page-shell .dist-editor-shell > .dist-board-panel,
+.dist-page-shell .dist-editor-shell > .dist-details-panel {
+    min-width: 0;
+    margin-bottom: 0 !important;
+}
+
+.dist-page-shell .dist-editor-shell .panel,
+.dist-page-shell .dist-editor-shell .dist-toolstrip {
+    background: var(--dist-panel) !important;
+    border: 1px solid var(--dist-border) !important;
+    border-radius: 14px !important;
+    color: var(--dist-text);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 10%);
+}
+
+.dist-page-shell .dist-editor-shell .dist-save-panel {
+    background: var(--dist-panel-raised) !important;
+    border-color: #6b5630 !important;
+}
+
+.dist-page-shell .dist-editor-shell .dist-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+}
+
+.dist-page-shell .dist-editor-shell .dist-summary-grid > div {
+    width: auto;
+    padding: 0;
+}
+
+.dist-page-shell .dist-editor-shell .dist-summary-grid .panel {
+    height: 100%;
+    padding: .9rem 1rem !important;
+    background: var(--dist-panel) !important;
+}
+
+.dist-page-shell .dist-editor-shell .dist-summary-grid .h3 {
+    font-size: 1.45rem;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+.dist-page-shell .dist-editor-shell .dist-board-panel {
+    background: #0e1929 !important;
+    overflow: hidden;
+}
+
+.dist-page-shell .dist-editor-shell .dist-board-heading {
+    align-items: flex-start;
+}
+
+.dist-page-shell .dist-editor-shell .dist-grid-wrap {
+    background-color: #091322;
+    border: 1px solid #20334a;
+    border-radius: 12px;
+}
+
+.dist-page-shell .dist-editor-shell .dist-details-panel {
+    background: var(--dist-panel) !important;
+}
+
+.dist-page-shell .dist-editor-shell .dist-foldable-heading {
+    min-height: 3.25rem;
+    gap: .75rem;
+}
+
+.dist-page-shell .dist-editor-shell .dist-foldable-content {
+    color: var(--dist-muted);
+}
+
+.dist-page-shell .dist-editor-shell .form-control,
+.dist-page-shell .dist-editor-shell .form-select {
+    background-color: #0d1928;
+    border-color: #344a63;
+    color: var(--dist-text);
+}
+
+.dist-page-shell .dist-editor-shell .form-control:focus,
+.dist-page-shell .dist-editor-shell .form-select:focus {
+    border-color: #78a9d5;
+    box-shadow: 0 0 0 .2rem rgb(120 169 213 / 18%);
+}
+
+.dist-page-shell .dist-editor-shell .muted,
+.dist-page-shell .dist-editor-shell .small.muted {
+    color: var(--dist-muted) !important;
+}
+
+@media (min-width: 576px) {
+    .dist-page-shell .dist-editor-shell .dist-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* En pantallas amplias, el tablero ocupa el centro; herramientas y ficha quedan a los lados. */
+@media (min-width: 1280px) {
+    .dist-page-shell .dist-editor-shell {
+        grid-template-columns: minmax(205px,  .78fr) minmax(420px, 2fr) minmax(245px, .9fr);
+        gap: 1rem;
+    }
+
+    .dist-page-shell .dist-editor-shell > .dist-create-panel {
+        grid-column: 1;
+        grid-row: 4;
+    }
+
+    .dist-page-shell .dist-editor-shell > .dist-toolstrip {
+        grid-column: 1;
+        grid-row: 5;
+    }
+
+    .dist-page-shell .dist-editor-shell > .dist-bulk-panel {
+        grid-column: 1;
+        grid-row: 6;
+    }
+
+    .dist-page-shell .dist-editor-shell > .dist-board-panel {
+        grid-column: 2;
+        grid-row: 4 / span 3;
+    }
+
+    .dist-page-shell .dist-editor-shell > .dist-details-panel {
+        grid-column: 3;
+        grid-row: 4 / span 3;
+        position: sticky;
+        top: 1rem;
+    }
+
+    .dist-page-shell .dist-editor-shell .dist-summary-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
+/* Tableta: tablero primero y paneles secundarios plegables debajo. */
+@media (min-width: 768px) and (max-width: 1279.98px) {
+    .dist-page-shell .dist-editor-shell > .dist-board-panel { grid-column: 1 / -1; grid-row: 5; }
+    .dist-page-shell .dist-editor-shell > .dist-details-panel { grid-column: 1 / -1; grid-row: 6; }
+    .dist-page-shell .dist-editor-shell > .dist-toolstrip { grid-column: 1 / -1; }
+}
+
+@media (max-width: 767.98px) {
+    .dist-page-shell .dist-editor-shell { gap: .75rem; }
+    .dist-page-shell .dist-page-header h1 { font-size: 1.45rem; }
+    .dist-page-shell .dist-editor-shell .dist-summary-grid { gap: .5rem; }
+    .dist-page-shell .dist-editor-shell .dist-summary-grid .panel { padding: .75rem !important; }
+    .dist-page-shell .dist-editor-shell .dist-board-panel { padding: .85rem !important; }
+    .dist-page-shell .dist-editor-shell .dist-board-heading { gap: .75rem; }
+}
+
+
+/* Etapa 3 — herramientas y pinceles persistentes de la pizarra. */
+.dist-editor-shell .dist-toolstrip__tools { gap: .5rem; }
+.dist-editor-shell .dist-toolstrip__tools .btn { min-height: 40px; }
+.dist-editor-shell .dist-toolstrip .dist-tool-active {
+    color: #111827;
+    background: var(--dist-primary);
+    border-color: var(--dist-primary);
+    box-shadow: 0 0 0 2px rgba(233,180,76,.2);
+    font-weight: 700;
+}
+.dist-editor-shell .dist-tool-message {
+    padding: .65rem .8rem;
+    border-left: 3px solid var(--dist-primary);
+    border-radius: .25rem;
+    color: var(--dist-muted);
+    background: rgba(11,18,32,.42);
+}
+.dist-editor-shell .dist-grid-wrap:not(.dist-grid-wrap--panning) .dist-asiento { cursor: crosshair; }
+.dist-editor-shell .dist-grid-wrap:not(.dist-grid-wrap--panning) .dist-asiento--vacio { cursor: pointer; }
+@media (max-width: 767.98px) {
+    .dist-editor-shell .dist-toolstrip__tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dist-editor-shell .dist-toolstrip__tools .btn { width: 100%; white-space: normal; }
+}
+
+
+/* Etapa 4 — barra contextual de acciones para uno o varios asientos. */
+.dist-editor-shell .dist-contextbar {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .85rem;
+    padding: .85rem 1rem; border: 1px solid var(--dist-border); border-left: 3px solid var(--dist-primary);
+    border-radius: .85rem; background: linear-gradient(110deg, rgba(24, 39, 58, .98), rgba(16, 27, 42, .98));
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .12);
+}
+.dist-editor-shell .dist-contextbar__identity { display: flex; align-items: center; gap: .75rem; min-width: 190px; flex: 1 1 220px; }
+.dist-editor-shell .dist-contextbar__identity h2 { color: var(--dist-text); }
+.dist-editor-shell .dist-contextbar__icon { display: inline-flex; align-items: center; justify-content: center; width: 2.4rem; height: 2.4rem; flex: 0 0 2.4rem; border-radius: .7rem; color: var(--dist-primary); background: rgba(239, 181, 67, .12); font-size: 1.15rem; }
+.dist-editor-shell .dist-contextbar__actions { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; }
+.dist-editor-shell .dist-contextbar__label { color: var(--dist-muted); font-size: .78rem; font-weight: 600; }
+.dist-editor-shell .dist-contextbar__divider { height: 1.6rem; border-left: 1px solid var(--dist-border); margin-inline: .2rem; }
+.dist-editor-shell .dist-contextbar .btn:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 767.98px) {
+    .dist-editor-shell .dist-contextbar { align-items: stretch; padding: .8rem; }
+    .dist-editor-shell .dist-contextbar__identity { flex-basis: 100%; }
+    .dist-editor-shell .dist-contextbar__actions { display: flex; width: 100%; }
+    .dist-editor-shell .dist-contextbar__actions .btn { min-height: 40px; }
+    .dist-editor-shell .dist-contextbar__divider { display: none; }
+}
+
+/* Feedback contextual de la pizarra: aislado del resto del panel administrativo. */
+.dist-editor-shell [x-cloak] { display: none !important; }
+.dist-editor-shell .dist-feedback {
+    display: none;
+    align-items: flex-start;
+    gap: .65rem;
+    padding: .75rem 1rem;
+    border: 1px solid rgba(126, 160, 190, .35);
+    border-radius: .65rem;
+    background: rgba(20, 34, 49, .96);
+    color: var(--dist-text, #edf3fa);
+    box-shadow: 0 .4rem 1.2rem rgba(0, 0, 0, .12);
+}
+.dist-editor-shell .dist-feedback--visible { display: flex; }
+.dist-editor-shell .dist-feedback--success { border-color: rgba(42, 190, 137, .65); }
+.dist-editor-shell .dist-feedback--warning { border-color: rgba(233, 180, 76, .7); }
+.dist-editor-shell .dist-feedback__icon {
+    display: inline-flex;
+    flex: 0 0 1.35rem;
+    width: 1.35rem;
+    height: 1.35rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(126, 160, 190, .18);
+    font-weight: 700;
+}
+.dist-editor-shell .dist-feedback--success .dist-feedback__icon { background: rgba(42, 190, 137, .18); }
+.dist-editor-shell .dist-feedback--warning .dist-feedback__icon { background: rgba(233, 180, 76, .18); }
+.dist-editor-shell .dist-feedback__close {
+    margin-left: auto;
+    padding: 0 .25rem;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+
+/* Etapa 6 — paneles integrados en el flujo de trabajo de la pizarra. */
+.dist-page-shell .dist-editor-shell {
+    display: block;
+}
+.dist-page-shell .dist-editor-shell > .dist-save-panel,
+.dist-page-shell .dist-editor-shell > .dist-feedback {
+    margin-bottom: .75rem !important;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace {
+    display: grid;
+    grid-template-columns: minmax(205px, .78fr) minmax(420px, 2fr) minmax(250px, .92fr);
+    grid-template-areas: "tools canvas inspector";
+    align-items: start;
+    gap: 1rem;
+    min-width: 0;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace__tools,
+.dist-page-shell .dist-editor-shell .dist-workspace__canvas,
+.dist-page-shell .dist-editor-shell .dist-workspace__inspector {
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+    min-width: 0;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace__tools { grid-area: tools; }
+.dist-page-shell .dist-editor-shell .dist-workspace__canvas { grid-area: canvas; }
+.dist-page-shell .dist-editor-shell .dist-workspace__inspector { grid-area: inspector; }
+.dist-page-shell .dist-editor-shell .dist-workspace__tools > *,
+.dist-page-shell .dist-editor-shell .dist-workspace__canvas > *,
+.dist-page-shell .dist-editor-shell .dist-workspace__inspector > * {
+    margin-bottom: 0 !important;
+    width: 100%;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .6rem;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-summary-grid .panel {
+    padding: .75rem !important;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-summary-grid .h3 {
+    font-size: 1.25rem;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-details-panel {
+    position: sticky;
+    top: 1rem;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace__tools .dist-toolstrip__actions {
+    align-items: stretch;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace__tools .dist-toolstrip__actions .btn {
+    text-align: left;
+}
+.dist-page-shell .dist-editor-shell .dist-workspace__canvas .dist-contextbar {
+    margin-bottom: 0 !important;
+}
+@media (min-width: 768px) and (max-width: 1279.98px) {
+    .dist-page-shell .dist-editor-shell .dist-workspace {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas:
+            "canvas canvas"
+            "tools inspector";
+    }
+    .dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-details-panel {
+        position: static;
+    }
+}
+@media (max-width: 767.98px) {
+    .dist-page-shell .dist-editor-shell .dist-workspace {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            "canvas"
+            "tools"
+            "inspector";
+        gap: .75rem;
+    }
+    .dist-page-shell .dist-editor-shell .dist-workspace__inspector .dist-details-panel {
+        position: static;
+    }
+    .dist-page-shell .dist-editor-shell .dist-workspace__tools .dist-toolstrip__actions .btn {
+        text-align: center;
+    }
+}

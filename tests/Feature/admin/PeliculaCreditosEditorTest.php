@@ -55,7 +55,7 @@ class PeliculaCreditosEditorTest extends TestCase
             ->assertSee('Créditos de la película')
             ->assertSee('Ana Actriz')
             ->assertSee('Luna')
-            ->assertSee('Asignar persona');
+            ->assertSee('Asignar crédito');
     }
 
     public function test_puede_asignar_un_credito_y_permanece_en_la_pestana(): void
@@ -69,7 +69,7 @@ class PeliculaCreditosEditorTest extends TestCase
             'personaje' => 'Luna',
             'orden' => 2,
         ])->assertRedirect(route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'creditos']))
-          ->assertSessionHasNoErrors();
+            ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('pelicula_credito', [
             'id_pelicula' => $pelicula->id_pelicula,
@@ -122,7 +122,7 @@ class PeliculaCreditosEditorTest extends TestCase
             'personaje' => 'Actualizado',
             'orden' => 3,
         ])->assertRedirect(route('admin.peliculas.edit', ['pelicula' => $pelicula, 'tab' => 'creditos']))
-          ->assertSessionHasNoErrors();
+            ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('pelicula_credito', [
             'id_pelicula' => $pelicula->id_pelicula,
@@ -229,5 +229,4 @@ class PeliculaCreditosEditorTest extends TestCase
         $this->assertDatabaseCount('persona', 1);
         $this->assertDatabaseCount('pelicula_credito', 0);
     }
-
 }
