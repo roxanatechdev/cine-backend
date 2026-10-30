@@ -22,6 +22,7 @@ use App\Http\Controllers\Admin\PeliculaMultimediaAdminController;
 use App\Http\Controllers\Admin\PeliculaPaisAdminController;
 use App\Http\Controllers\Admin\PersonaAdminController;
 use App\Http\Controllers\Api\PeliculaPublicaController;
+use App\Http\Controllers\Api\ProductoPublicoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -32,6 +33,10 @@ Route::get('/api/peliculas', [PeliculaPublicaController::class, 'cartelera']);
 Route::get('/api/peliculas/cartelera', [PeliculaPublicaController::class, 'cartelera']);
 Route::get('/api/peliculas/proximamente', [PeliculaPublicaController::class, 'proximamente']);
 Route::get('/api/peliculas/destacadas', [PeliculaPublicaController::class, 'destacadas']);
+
+// Confitería pública: catálogo de productos activos disponibles.
+Route::get('/api/productos', [ProductoPublicoController::class, 'index']);
+Route::get('/api/confiteria/productos', [ProductoPublicoController::class, 'index']);
 
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
