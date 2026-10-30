@@ -50,6 +50,10 @@ Route::delete('/api/compras/{id}/reserva', [ReservaPublicaController::class, 'ca
 Route::post('/api/compras/{id}/pago', [PagoSimuladoPublicoController::class, 'store'])->whereNumber('id');
 Route::get('/api/compras/{id}/ticket', [PagoSimuladoPublicoController::class, 'ticket'])->whereNumber('id');
 
+// Confitería pública: catálogo de productos activos disponibles.
+Route::get('/api/productos', [ProductoPublicoController::class, 'index']);
+Route::get('/api/confiteria/productos', [ProductoPublicoController::class, 'index']);
+
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
