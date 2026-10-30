@@ -7,7 +7,7 @@ use App\Models\Producto;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 
-/** Catálogo público de confitería: solo lectura, sin exponer datos administrativos. */
+/** Catálogo público de confitería: solo lectura. */
 class ProductoPublicoController extends Controller
 {
     public function index(): JsonResponse
@@ -37,16 +37,14 @@ class ProductoPublicoController extends Controller
                     'id_categoria_producto' => $producto->id_categoria_producto,
                     'categoria' => $producto->categoria?->nombre,
                     'precio_actual' => (float) $producto->precio_actual,
-                    'precio' => $promocionVigente
-                        ? (float) $producto->precio_promocional
-                        : (float) $producto->precio_actual,
+                    'precio' => $promocionVigente ? (float) $producto->precio_promocional : (float) $producto->precio_actual,
                     'es_promocion' => $promocionVigente,
                     'precio_promocional' => $promocionVigente ? (float) $producto->precio_promocional : null,
                     'tamano' => $producto->tamano,
                     'tipo_variante' => $producto->tipo_variante,
                     'contenido_ml' => $producto->contenido_ml,
                     'peso_gramos' => $producto->peso_gramos,
-                    'imagen' => $this->urlImagen($producto->imagen),
+                    'imagen' => $this->resolverImagen($producto->imagen),
                 ];
             })
             ->values();
@@ -58,38 +56,48 @@ class ProductoPublicoController extends Controller
         ]);
     }
 
-    private function urlImagen(?string $ruta): ?string
+    /**
+     * El formulario de administración guarda los archivos en el disco public
+     * con rutas como productos/archivo.jpg. Se devuelve una ruta /storage/... 
+     * para que el navegador la solicite al mismo servidor de la API.
+     */
+    private function resolverImagen(?string $valor): ?string
     {
-        if ($ruta === null || trim($ruta) === '') {
+        if ($valor === null || trim($valor) === '') {
             return null;
         }
 
-        $ruta = trim(str_replace('\\', '/', $ruta));
+        $ruta = trim(str_replace('\\', '/', $valor));
 
-        // Las URLs completas (por ejemplo, imágenes alojadas externamente) se conservan.
-        if (preg_match('/^(https?:\/\/|data:image\/)/i', $ruta)) {
+        if (preg_match('/^data:image\//i', $ruta)) {
             return $ruta;
         }
 
-        // Si se guardó una ruta de imagen perteneciente al frontend, dejarla relativa
-        // para que confiteria.js la resuelva desde la ubicación de confiteria.html.
-        $rutaFrontend = ltrim($ruta, './');
-        if (preg_match('/^(img|images|assets|frontend\/img)\//i', $rutaFrontend)) {
-            return $rutaFrontend;
+        // Las URLs externas reales se conservan. Las de example.test son datos ficticios.
+        if (preg_match('/^https?:\/\//i', $ruta)) {
+            $host = parse_url($ruta, PHP_URL_HOST);
+            if ($host && !str_ends_with(strtolower($host), '.example.test')) {
+                return $ruta;
+            }
+            $ruta = (string) parse_url($ruta, PHP_URL_PATH);
         }
 
-        // Normalizar variantes habituales guardadas en la base de datos:
-        // storage/productos/foto.jpg, public/productos/foto.jpg o /productos/foto.jpg.
         $ruta = ltrim($ruta, '/');
+        $ruta = preg_replace('#^(public/)?storage/#i', '', $ruta);
         $ruta = preg_replace('#^public/#i', '', $ruta);
-        $ruta = preg_replace('#^storage/#i', '', $ruta);
+        $ruta = preg_replace('#^products/#i', 'productos/', $ruta);
 
-        // El formulario administrativo de este proyecto guarda archivos en "productos".
-        // Si la BD contiene solo "foto.jpg", buscarlo en esa carpeta.
+        // Los nombres sin carpeta se guardan en la carpeta usada por el formulario.
         if (!str_contains($ruta, '/')) {
             $ruta = 'productos/' . $ruta;
         }
 
-        return url(Storage::disk('public')->url($ruta));
+        // Si ya viene como ruta relativa de frontend, no se fuerza a Storage.
+        if (preg_match('#^(img|images|assets)/#i', $ruta)) {
+            return '/' . $ruta;
+        }
+
+        // Ruta relativa estable: evita que APP_URL apunte a localhost o dominio distinto.
+        return '/storage/' . ltrim($ruta, '/');
     }
 }
