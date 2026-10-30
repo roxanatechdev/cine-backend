@@ -58,6 +58,32 @@ class PeliculaCreditosEditorTest extends TestCase
             ->assertSee('Asignar crédito');
     }
 
+    public function test_editar_credito_se_presenta_en_un_modal_y_no_como_seccion(): void
+    {
+        $pelicula = $this->pelicula();
+        $persona = $this->persona('Ana Actriz');
+        DB::table('pelicula_credito')->insert([
+            'id_pelicula' => $pelicula->id_pelicula,
+            'id_persona' => $persona,
+            'rol' => 'ACTOR',
+            'personaje' => 'Luna',
+            'orden' => 1,
+        ]);
+
+        $this->get(route('admin.peliculas.edit', [
+            'pelicula' => $pelicula,
+            'tab' => 'creditos',
+            'credito_accion' => 'editar',
+            'credito_persona' => $persona,
+            'credito_rol' => 'ACTOR',
+        ]))
+            ->assertOk()
+            ->assertSee('id="modalEditarCredito"', false)
+            ->assertSee('Editar crédito')
+            ->assertSee('value="Ana Actriz"', false)
+            ->assertDontSee('class="form-cm mt-4"', false);
+    }
+
     public function test_puede_asignar_un_credito_y_permanece_en_la_pestana(): void
     {
         $pelicula = $this->pelicula();

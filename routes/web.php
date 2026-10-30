@@ -22,6 +22,9 @@ use App\Http\Controllers\Admin\PeliculaMultimediaAdminController;
 use App\Http\Controllers\Admin\PeliculaPaisAdminController;
 use App\Http\Controllers\Admin\PersonaAdminController;
 use App\Http\Controllers\Api\PeliculaPublicaController;
+use App\Http\Controllers\Api\FuncionPublicaController;
+use App\Http\Controllers\Api\ReservaPublicaController;
+use App\Http\Controllers\Api\PagoSimuladoPublicoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -32,6 +35,20 @@ Route::get('/api/peliculas', [PeliculaPublicaController::class, 'cartelera']);
 Route::get('/api/peliculas/cartelera', [PeliculaPublicaController::class, 'cartelera']);
 Route::get('/api/peliculas/proximamente', [PeliculaPublicaController::class, 'proximamente']);
 Route::get('/api/peliculas/destacadas', [PeliculaPublicaController::class, 'destacadas']);
+Route::get('/api/peliculas/{id}', [PeliculaPublicaController::class, 'detalle'])->whereNumber('id');
+
+// API pública de lectura para el proceso de compra de entradas.
+Route::get('/api/funciones/{id}', [FuncionPublicaController::class, 'detalle'])->whereNumber('id');
+Route::get('/api/funciones/{id}/asientos', [FuncionPublicaController::class, 'asientos'])->whereNumber('id');
+Route::get('/api/productos', [FuncionPublicaController::class, 'productos']);
+
+// Reservas públicas de invitado: el token de acceso solo se entrega al crear la reserva.
+Route::post('/api/compras', [ReservaPublicaController::class, 'store']);
+Route::get('/api/compras/{id}/reserva', [ReservaPublicaController::class, 'show'])->whereNumber('id');
+Route::delete('/api/compras/{id}/reserva', [ReservaPublicaController::class, 'cancel'])->whereNumber('id');
+// Pagos simulados: sin cobros reales; solo el backend puede confirmar la compra y emitir tickets.
+Route::post('/api/compras/{id}/pago', [PagoSimuladoPublicoController::class, 'store'])->whereNumber('id');
+Route::get('/api/compras/{id}/ticket', [PagoSimuladoPublicoController::class, 'ticket'])->whereNumber('id');
 
 Route::middleware(['auth', 'admin'])
     ->prefix('admin')

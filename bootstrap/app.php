@@ -18,6 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => EnsureUserIsAdmin::class,
         ]);
+
+        // Las rutas públicas de reserva se consumen desde el frontend mediante
+        // JSON y no utilizan sesión/cookies de autenticación web. Excluir solo
+        // estos endpoints del CSRF evita el 419 sin desactivar CSRF globalmente.
+        $middleware->validateCsrfTokens(except: [
+            'api/compras',
+            'api/compras/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

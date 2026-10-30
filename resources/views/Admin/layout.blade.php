@@ -5,13 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
-    <title>@yield('title', 'Panel de administración') | CinePrime</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons CDN -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <title>@yield('title', 'Panel de administración') | CineUp</title>
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+  <!-- Bootstrap Icons Local (Offline) -->
+<link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons-1.13.1/bootstrap-icons.css') }}">
     <link href="{{ asset('css/estilos-globales-proyecto.css') }}" rel="stylesheet">
     <link href="{{ asset('css/admin-cineprime.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/admin.css')}}">
@@ -188,6 +185,75 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
+        /* Grupos desplegables del menú: Bootstrap Collapse */
+        .admin-nav-group-toggle {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .admin-nav-group-toggle .nav-group-chevron {
+            font-size: 0.75rem;
+            transition: transform 0.2s ease;
+        }
+
+        .admin-nav-group-toggle[aria-expanded="true"] .nav-group-chevron {
+            transform: rotate(180deg);
+        }
+
+        .admin-nav-submenu {
+            padding: 0.2rem 0 0.2rem 0.85rem;
+        }
+
+        .admin-nav-subitem {
+            font-size: 0.82rem;
+            padding-top: 0.15rem;
+            padding-bottom: 0.15rem;
+        }
+
+        .admin-nav-subitem .nav-icon {
+            font-size: 1rem;
+        }
+
+        /* En modo compacto, el submenú aparece como panel flotante lateral.
+           El sidebar conserva sus 72 px y Bootstrap sigue controlando el Collapse. */
+        .sidebar-collapsed .admin-nav-group-toggle .nav-group-chevron {
+            display: none;
+        }
+
+        .sidebar-collapsed .admin-nav-group > .admin-nav-submenu,
+        .sidebar-collapsed .admin-nav-group > .admin-nav-submenu.collapsing {
+            position: absolute;
+            top: 0;
+            left: calc(100% + 8px);
+            width: 220px;
+            z-index: 1100;
+            padding: 0.45rem;
+            margin: 0;
+            overflow: hidden;
+            background: var(--cm-surface-container-lowest, #0c0e17);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        }
+
+        .sidebar-collapsed .admin-nav-group > .admin-nav-submenu .admin-nav-subitem {
+            justify-content: flex-start;
+            padding: 0.45rem 0.65rem;
+            gap: 0.65rem;
+        }
+
+        .sidebar-collapsed .admin-nav-group > .admin-nav-submenu .admin-nav-subitem span {
+            display: inline !important;
+        }
+
+        .sidebar-collapsed .admin-nav-group > .admin-nav-submenu .admin-nav-subitem .nav-icon {
+            flex: 0 0 1.25rem;
+            text-align: center;
+        }
+
         /* ==========================================================================
            3. SEGURIDAD MÓVIL Y TABLET (Forzar versión extendida en pantallas < 992px)
            ========================================================================== */
@@ -228,7 +294,29 @@
                 display: none !important;
             }
 
+            /* En móvil los Collapse permanecen dentro del flujo normal del menú. */
+            .admin-shell.sidebar-collapsed .admin-nav-group > .admin-nav-submenu,
+            .admin-shell.sidebar-collapsed .admin-nav-group > .admin-nav-submenu.collapsing {
+                position: static !important;
+                left: auto !important;
+                top: auto !important;
+                width: auto !important;
+                padding: 0.2rem 0 0.2rem 0.85rem !important;
+                margin: 0 !important;
+                overflow: hidden;
+                border: 0 !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                background: transparent !important;
+            }
 
+            .admin-shell.sidebar-collapsed .admin-nav-group > .admin-nav-submenu .admin-nav-subitem span {
+                display: inline !important;
+            }
+
+            .admin-shell.sidebar-collapsed .admin-nav-group-toggle .nav-group-chevron {
+                display: inline-block !important;
+            }
         }
     </style>
     @livewireStyles
@@ -245,7 +333,7 @@
                         <span class="material-symbols-outlined text-cm-primary-container fs-2">movie</span>
                         <div class="d-flex flex-column">
                             <span class="brand-title font-display">
-                                <span class="text-white">CINE</span><span class="text-cm-brand-red">PRIME</span>
+                                <span class="text-white">CINE</span><span class="text-cm-brand-red">UP</span>
                             </span>
                             <span class="brand-subtitle text-uppercase text-nowrap">CONSOLA DE CONTROL </span>
                         </div>
@@ -272,35 +360,75 @@
                             <span>Salas y Aforo</span>
                         </a>
 
-                        <!-- SECCIÓN: CATÁLOGOS -->
-                        <div class="admin-nav-section-label mt-3">CATÁLOGOS</div>
-                        <a class="admin-nav-item {{ request()->routeIs('admin.generos.*') ? 'active' : '' }}" href="{{ route('admin.generos.index') }}" data-tooltip="Géneros">
-                            <i class="bi bi-collection-play nav-icon"></i>
-                            <span>Géneros</span>
-                        </a>
-                        <a class="admin-nav-item {{ request()->routeIs('admin.idiomas.*') ? 'active' : '' }}" href="{{ route('admin.idiomas.index') }}" data-tooltip="Idiomas">
-                            <i class="bi bi-translate nav-icon"></i>
-                            <span>Idiomas</span>
-                        </a>
-                        <a class="admin-nav-item {{ request()->routeIs('admin.paises.*') ? 'active' : '' }}" href="{{ route('admin.paises.index') }}" data-tooltip="Países">
-                            <i class="bi bi-globe nav-icon"></i>
-                            <span>Países</span>
-                        </a>
-                        <a class="admin-nav-item {{ request()->routeIs('admin.personas.*') ? 'active' : '' }}" href="{{ route('admin.personas.index') }}" data-tooltip="Personas">
-                            <i class="bi bi-people-fill nav-icon"></i>
-                            <span>Personas</span>
-                        </a>
+                        <!-- GRUPO DESPLEGABLE: CATÁLOGOS -->
+                        <div class="admin-nav-group position-relative">
+                            <button
+                                class="admin-nav-item admin-nav-group-toggle {{ request()->routeIs('admin.generos.*', 'admin.idiomas.*', 'admin.paises.*', 'admin.personas.*') ? 'active' : '' }}"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#adminCatalogosCollapse"
+                                aria-expanded="{{ request()->routeIs('admin.generos.*', 'admin.idiomas.*', 'admin.paises.*', 'admin.personas.*') ? 'true' : 'false' }}"
+                                aria-controls="adminCatalogosCollapse"
+                                data-tooltip="Catálogos">
+                                <i class="bi bi-collection nav-icon"></i>
+                                <span>Catálogos</span>
+                                <i class="bi bi-chevron-down nav-group-chevron ms-auto" aria-hidden="true"></i>
+                            </button>
 
-                        <!-- SECCIÓN: CONCESIONES -->
-                        <div class="admin-nav-section-label mt-3">CONCESIONES</div>
-                        <a class="admin-nav-item {{ request()->routeIs('admin.categorias-producto.*') ? 'active' : '' }}" href="{{ route('admin.categorias-producto.index') }}" data-tooltip="Categorías Dulcería">
-                            <i class="bi bi-cup-straw nav-icon"></i>
-                            <span>Categorías Dulcería</span>
-                        </a>
-                        <a class="admin-nav-item {{ request()->routeIs('admin.productos.*') ? 'active' : '' }}" href="{{ route('admin.productos.index') }}" data-tooltip="Productos">
-                            <i class="bi bi-box-seam nav-icon"></i>
-                            <span>Productos</span>
-                        </a>
+                            <div class="collapse admin-nav-submenu {{ request()->routeIs('admin.generos.*', 'admin.idiomas.*', 'admin.paises.*', 'admin.personas.*') ? 'show' : '' }}"
+                                id="adminCatalogosCollapse">
+                                <a class="admin-nav-item admin-nav-subitem {{ request()->routeIs('admin.generos.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.generos.index') }}" data-tooltip="Géneros">
+                                    <i class="bi bi-collection-play nav-icon"></i>
+                                    <span>Géneros</span>
+                                </a>
+                                <a class="admin-nav-item admin-nav-subitem {{ request()->routeIs('admin.idiomas.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.idiomas.index') }}" data-tooltip="Idiomas">
+                                    <i class="bi bi-translate nav-icon"></i>
+                                    <span>Idiomas</span>
+                                </a>
+                                <a class="admin-nav-item admin-nav-subitem {{ request()->routeIs('admin.paises.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.paises.index') }}" data-tooltip="Países">
+                                    <i class="bi bi-globe nav-icon"></i>
+                                    <span>Países</span>
+                                </a>
+                                <a class="admin-nav-item admin-nav-subitem {{ request()->routeIs('admin.personas.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.personas.index') }}" data-tooltip="Personas">
+                                    <i class="bi bi-people-fill nav-icon"></i>
+                                    <span>Personas</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- GRUPO DESPLEGABLE: DULCERÍA Y PRODUCTOS -->
+                        <div class="admin-nav-group position-relative mt-2">
+                            <button
+                                class="admin-nav-item admin-nav-group-toggle {{ request()->routeIs('admin.categorias-producto.*', 'admin.productos.*') ? 'active' : '' }}"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#adminDulceriaCollapse"
+                                aria-expanded="{{ request()->routeIs('admin.categorias-producto.*', 'admin.productos.*') ? 'true' : 'false' }}"
+                                aria-controls="adminDulceriaCollapse"
+                                data-tooltip="Dulcería y Productos">
+                                <i class="bi bi-cup-straw nav-icon"></i>
+                                <span>Dulcería y Productos</span>
+                                <i class="bi bi-chevron-down nav-group-chevron ms-auto" aria-hidden="true"></i>
+                            </button>
+
+                            <div class="collapse admin-nav-submenu {{ request()->routeIs('admin.categorias-producto.*', 'admin.productos.*') ? 'show' : '' }}"
+                                id="adminDulceriaCollapse">
+                                <a class="admin-nav-item admin-nav-subitem {{ request()->routeIs('admin.categorias-producto.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.categorias-producto.index') }}" data-tooltip="Categorías Dulcería">
+                                    <i class="bi bi-tags nav-icon"></i>
+                                    <span>Categorías Dulcería</span>
+                                </a>
+                                <a class="admin-nav-item admin-nav-subitem {{ request()->routeIs('admin.productos.*') ? 'active' : '' }}"
+                                    href="{{ route('admin.productos.index') }}" data-tooltip="Productos">
+                                    <i class="bi bi-box-seam nav-icon"></i>
+                                    <span>Productos</span>
+                                </a>
+                            </div>
+                        </div>
 
                         <!-- SECCIÓN: GESTIÓN Y FINANZAS -->
                         <div class="admin-nav-section-label mt-3">GESTIÓN Y FINANZAS</div>
@@ -315,7 +443,7 @@
                         <a class="admin-nav-item {{ request()->routeIs('admin.pagos.*') ? 'active' : '' }}" href="{{ route('admin.pagos.index') }}" data-tooltip="Pagos">
                             <i class="bi bi-credit-card nav-icon"></i>
                             <span>Pagos</span>
-                        </a>
+                        </a><!--
                         <a class="admin-nav-item {{ request()->routeIs('admin.reembolsos.*') ? 'active' : '' }}" href="{{ route('admin.reembolsos.index') }}" data-tooltip="Reembolsos">
                             <i class="bi bi-arrow-counterclockwise nav-icon"></i>
                             <span>Reembolsos</span>
@@ -323,7 +451,7 @@
                         <a class="admin-nav-item {{ request()->routeIs('admin.tickets.*') || request()->routeIs('admin.entradas.*') ? 'active' : '' }}" href="{{ route('admin.tickets.index') }}" data-tooltip="Validación de Boletos / Tickets">
                             <i class="bi bi-qr-code-scan nav-icon"></i>
                             <span>Validación de Boletos / Tickets</span>
-                        </a>
+                        </a>-->
                     </nav>
                 </div>
             </div>
@@ -363,7 +491,7 @@
                     <!-- Indicador de Estado / Contexto Rápido -->
                     <div class="d-none d-xxl-flex align-items-center gap-2 bg-cm-surface-container px-3 py-1 rounded-pill border border-secondary border-opacity-10 fs-8 text-cm-variant">
                         <span class="spinner-grow spinner-grow-sm text-success" role="status" style="width: 8px; height: 8px;"></span>
-                        <span>Sistema Activo - CinePrime</span>
+                        <span>Sistema Activo - CineUp</span>
                     </div>
 
                     <!-- Menú Desplegable de Usuario / Perfil -->
@@ -386,12 +514,12 @@
                                     <span class="badge bg-cm-primary-container text-white fs-10 py-1 rounded-pill">Administrador</span>
                                 </div>
                             </li>
-                            <li>
+                            {{-- <li>
                                 <a class="dropdown-item text-white d-flex align-items-center gap-2 py-2 px-3 fs-7 transition-all" href="#">
                                     <span class="material-symbols-outlined fs-5 text-cm-variant">manage_accounts</span>
                                     Mi Perfil y Ajustes
                                 </a>
-                            </li>
+                            </li> --}}
                             <li>
                                 <hr class="dropdown-divider my-1" style="border: 0.5px solid rgba(232, 187, 167, 0.1) !important;">
                             </li>
@@ -425,7 +553,7 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+   <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script>
         (() => {
             const shell = document.getElementById('adminShell');

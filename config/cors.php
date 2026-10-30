@@ -30,7 +30,7 @@ return [
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['Accept', 'Content-Type', 'Origin'],
+    'allowed_headers' => ['Accept', 'Content-Type', 'Origin', 'X-Reserva-Token'],
 
     'exposed_headers' => [],
 

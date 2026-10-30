@@ -23,6 +23,7 @@ class Compra extends Model
             'vence_reserva' => 'datetime',
             'total' => 'decimal:2',
             'cancelada_en' => 'datetime',
+            'stock_apartado' => 'boolean',
         ];
     }
 

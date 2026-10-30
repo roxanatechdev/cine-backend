@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CINEPRIME - ESTILOS GLOBALES & DESIGN SYSTEM
+   CINE - ESTILOS GLOBALES & DESIGN SYSTEM
    Enfoque: Diseño Web II - Proyecto Feria Informática 2026
    Framework Base: Bootstrap 5 + Custom Properties
    ========================================================================== */
@@ -118,9 +118,77 @@ body {
     color: var(--cm-on-primary-container);
 }
 
-/* Importación unificada desde Google Fonts CDN para Tipografías e Iconos */
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;400;500;600;700&display=swap');
+/*  ESPECIFICACIONES TIPOGRÁFICAS (MAPPING A BOOTSTRAP UTILITIES / CUSTOM CLASSES) */
 
+/* ==========================================================================
+   CINEMAX - DECLARACIÓN DE FUENTES LOCALES (OFFLINE MODE)
+   ========================================================================== */
+
+/* 1. BEBAS NEUE (DISPLAY) */
+@font-face {
+    font-family: 'Bebas Neue';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('fonts/bebas-neue-v16-latin-regular.woff2') format('woff2');
+}
+
+/* 2. MONTSERRAT (BODY & INTERACTION) */
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('fonts/montserrat-v31-latin-300.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('fonts/montserrat-v31-latin-regular.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('fonts/montserrat-v31-latin-500.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('fonts/montserrat-v31-latin-600.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('fonts/montserrat-v31-latin-700.woff2') format('woff2');
+}
+
+/* 3. MATERIAL SYMBOLS OUTLINED (ICONS) */
+@font-face {
+    font-family: 'Material Symbols Outlined';
+    font-style: normal;
+    font-weight: 400;
+    src: url('fonts/material-symbols-outlined-latin-fill-normal.woff2') format('woff2');
+}
+
+/* 4. MATERIAL SYMBOLS ROUNDED (ICONS) */
+@font-face {
+    font-family: 'Material Symbols Rounded';
+    font-style: normal;
+    font-weight: 400;
+    src: url('fonts/material-symbols-rounded-latin-fill-normal.woff2') format('woff2');
+}
 
 /* Clases base requeridas para el funcionamiento de los Material Symbols */
 .material-symbols-outlined {

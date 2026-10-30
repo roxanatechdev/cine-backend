@@ -75,6 +75,59 @@ class PeliculaPublicaController extends Controller
         ]);
     }
 
+    /** Detalle público de una película activa, consultada únicamente por su ID. */
+    public function detalle(int $id): JsonResponse
+    {
+        $pelicula = $this->consultaBase()->findOrFail($id);
+        // La ficha técnica completa y los países solo se cargan en la página de detalle.
+        $pelicula->load([
+            'creditos' => function ($query) {
+                $query->with('persona:id_persona,nombre_completo,nombre_busqueda')
+                    ->orderBy('rol')
+                    ->orderBy('orden');
+            },
+            'paises:codigo,nombre',
+            'multimedia' => function ($query) {
+                $query->where('activo', 1)
+                    ->whereIn('tipo', ['POSTER', 'IMAGEN', 'TRAILER', 'VIDEO'])
+                    ->orderByDesc('es_principal')
+                    ->orderBy('orden')
+                    ->orderBy('id_multimedia');
+            },
+        ]);
+        $datos = $this->formatear($pelicula);
+        $datos['multimedia'] = $pelicula->multimedia->whereIn('tipo', ['IMAGEN', 'TRAILER', 'VIDEO'])->map(fn ($recurso) => [
+            'id_multimedia' => $recurso->id_multimedia,
+            'tipo' => $recurso->tipo,
+            'url' => $this->urlMultimedia($recurso->url),
+            'texto_alternativo' => $recurso->texto_alternativo,
+            'es_principal' => (bool) $recurso->es_principal,
+            'orden' => $recurso->orden,
+        ])->values();
+
+        $funciones = Funcion::query()
+            ->with(['sala:id_sala,nombre'])
+            ->where('id_pelicula', $pelicula->id_pelicula)
+            ->where('estado', 'PROGRAMADA')
+            ->where('inicio', '>=', now())
+            ->orderBy('inicio')
+            ->get()
+            ->map(fn (Funcion $funcion) => [
+                'id_funcion' => $funcion->id_funcion,
+                'inicio' => $funcion->inicio?->toIso8601String(),
+                'fecha' => $funcion->inicio?->toDateString(),
+                'hora' => $funcion->inicio?->format('H:i'),
+                'formato' => $funcion->formato,
+                'precio' => $funcion->precio_base,
+                'sala' => $funcion->sala?->nombre,
+            ])->values();
+
+        $datos['funciones'] = $funciones;
+        $datos['formatos'] = $funciones->pluck('formato')->unique()->values();
+
+        return response()->json(['pelicula' => $datos]);
+    }
+
     /** Películas activas con fecha de estreno futura, sin exigir funciones creadas. */
     public function proximamente(): JsonResponse
     {
@@ -124,7 +177,7 @@ class PeliculaPublicaController extends Controller
                 },
                 'multimedia' => function ($query) {
                     $query->where('activo', 1)
-                        ->whereIn('tipo', ['POSTER', 'IMAGEN', 'TRAILER'])
+                        ->whereIn('tipo', ['POSTER', 'IMAGEN', 'TRAILER', 'VIDEO'])
                         ->orderByDesc('es_principal')
                         ->orderBy('orden')
                         ->orderBy('id_multimedia');
@@ -161,6 +214,12 @@ class PeliculaPublicaController extends Controller
                 'rol' => $credito->rol,
                 'nombre' => $credito->persona?->nombre_completo,
                 'nombre_busqueda' => $credito->persona?->nombre_busqueda,
+                'personaje' => $credito->personaje,
+                'orden' => $credito->orden,
+            ])->values(),
+            'paises_produccion' => $pelicula->paises->map(fn ($pais) => [
+                'codigo' => $pais->codigo,
+                'nombre' => $pais->nombre,
             ])->values(),
             'funciones' => [],
             'formatos' => [],

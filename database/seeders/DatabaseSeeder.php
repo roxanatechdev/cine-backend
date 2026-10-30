@@ -2,24 +2,64 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->call([
+            /*
+             * 1. Usuarios del sistema
+             */
+            UsuarioSeeder::class,
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+            /*
+             * 2. Catálogos de películas
+             */
+            IdiomaSeeder::class,
+            PaisSeeder::class,
+            GeneroSeeder::class,
+            PeliculaSeeder::class,
+            PersonaSeeder::class,
+            PeliculaCreditoSeeder::class,
+            PeliculaPaisSeeder::class,
+            PeliculaMultimediaSeeder::class,
+
+            /*
+             * 3. Salas, asientos y programación
+             */
+            SalaSeeder::class,
+            AsientoSeeder::class,
+            SalaPasilloSeeder::class,
+            FuncionSeeder::class,
+            FuncionAsientoSeeder::class,
+
+            /*
+             * 4. Compradores y confitería
+             */
+            CompradorSeeder::class,
+            CategoriaProductoSeeder::class,
+            ProductoSeeder::class,
+
+            /*
+             * 5. Compras, entradas y pagos de prueba
+             */
+            CompraSeeder::class,
+            EntradaSeeder::class,
+            PagoSeeder::class,
+
+            /*
+             * 6. Escenarios confirmados y comprobantes
+             */
+            EscenariosCompraSeeder::class,
+            TicketSeeder::class,
+            ReembolsoSeeder::class,
+
+            /*
+             * 7. Productos asociados a las compras originales
+             */
+            DetalleCompraSeeder::class,
         ]);
     }
 }
